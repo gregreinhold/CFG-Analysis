@@ -1,0 +1,30 @@
+# Please don't do something like var1 = var1 + 2, where the assignment variable appears in the RHS you will get infinite recursion
+# Any arbitrary sequence of basic arithmetic operation (+-*/) should work, parenthesized or not
+# Anything inside parenthesis does not get syntax check
+# Negative number does not work
+
+var1=1
+var2 = 2
+var3 = 22
+Array[var1] = 1
+
+if var1 = var2
+	var1 = (var2 + 2) * 3 - 3 * 2
+endif
+for i = (var1 + 1) to var3
+	if var1 = var2
+		TestFunction1()
+		TestFunction2()
+	endif
+	if var1 = var3
+		Print()
+	endif
+	
+	# This works, but we won't want to write the distribution for this
+	#for j = 0 to 10
+	#	if var1 = var2
+	#		TestFunction2()
+	#	endif
+	#endfor
+endfor
+TestFunction3()

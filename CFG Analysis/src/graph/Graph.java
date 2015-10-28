@@ -69,10 +69,12 @@ public class Graph
 		for (Edge e : v.GetOutEdge())	// Remove all edges leaving v from targets' InEdge list
 		{
 			e.GetTarget().GetInEdge().remove(e);
+			lstEdge.remove(e);
 		}
 		for (Edge e : v.GetInEdge())	// Remove all edges entering v from sources' OutEdge list
 		{
 			e.GetSource().GetOutEdge().remove(e);
+			lstEdge.remove(e);
 		}
 	}
 	
@@ -197,6 +199,24 @@ public class Graph
 		for (Edge e : lstEdge)
 		{
 			e.SetVisited(false);
+		}
+	}
+	
+	public void PrintGraph(boolean pVertex, boolean pEdge)
+	{
+		if (pVertex)
+		{
+			for (Vertex v : lstVertex)
+			{
+				System.out.println("Vertex: " + v.GetLabel() + " " + v.GetType());
+			}
+		}
+		if (pEdge)
+		{
+			for (Edge e : lstEdge)
+			{
+				System.out.println("Edge " + e.GetLabel() + " : " + e.GetSource().GetLabel() + " -> " + e.GetTarget().GetLabel());
+			}
 		}
 	}
 }

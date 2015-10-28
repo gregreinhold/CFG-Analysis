@@ -9,7 +9,10 @@ public class Vertex
 	private String name;
 	private String label;
 	private String type;
-	private String looptype=null;
+	private String expr;
+	private int forUpperBound;
+	private int forLowerBound;
+	private String looptype = null;
 	private boolean visited;
 	
 	private int x;
@@ -34,10 +37,33 @@ public class Vertex
 		y = pY;
 	}
 	
+	public int GetUpperBound()
+	{
+		return forUpperBound;
+	}
+	public void SetUpperBound(int value)
+	{
+		forUpperBound = value;
+	}
+	public int GetLowerBound()
+	{
+		return forLowerBound;
+	}
+	public void SetLowerBound(int value)
+	{
+		forLowerBound = value;
+	}
+	public String GetExpr()
+	{
+		return expr;
+	}
+	public void SetExpr(String s)
+	{
+		expr = s;
+	}
 	public String GetLooptype(){
 		return looptype;
 	}
-
 	public void SetLooptype(String looptype){
 		this.looptype=looptype;
 	}

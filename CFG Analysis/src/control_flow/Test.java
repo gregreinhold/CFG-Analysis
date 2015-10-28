@@ -25,20 +25,34 @@ public class Test {
 
 	public Test()
 	{
-		Graph gGraph;
-		gGraph = ReadXML();
-		ReducedGraph(gGraph);
-		AnalysisGraph(gGraph);
-		gGraph.CurveEdges();
-		new DrawingApp(gGraph);
-		generateDot(gGraph);
+		Graph gGraph = null;
+		String sGraphPath = ""; //src/control_flow/TestAlgorithms.java";
+		//String sCodePath = "TestAlgorithms.TestFunction3.src.graphml";
+		String sCodePath = "code.txt";
+		
+		if (sCodePath.length() > 0)
+		{
+			if (sGraphPath.length() > 0)
+				gGraph = ReadXML(sGraphPath, sCodePath);
+			else 
+				gGraph = new GraphParser().Parse(sCodePath);
+		}
+		if (gGraph != null)
+		{
+			ReducedGraph(gGraph);
+			AnalysisGraph(gGraph);
+			gGraph.PrintGraph(true, true);
+			gGraph.CurveEdges();
+			new DrawingApp(gGraph);
+			generateDot(gGraph);
+		}
 	}
 	
 
 	// Read XML and parse it, generate a graph
-	public Graph ReadXML()
+	public Graph ReadXML(String sXMLPath, String sCodePath)
 	{
-		File codes = new File("src/control_flow/TestAlgorithms.java");
+		File codes = new File(sCodePath);
 		Map<String,String> lineloop = new HashMap<String,String>();
         Map<String,String> lineif = new HashMap<String,String>();
 		try{
@@ -55,7 +69,7 @@ public class Test {
 		}catch(IOException e){
 			e.printStackTrace();
 		}
-		File fXml = new File("TestAlgorithms.TestFunction3.src.graphml");
+		File fXml = new File(sXMLPath);
 		DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
 		DocumentBuilder dBuilder = null;
 		Document doc = null;
@@ -89,7 +103,8 @@ public class Test {
 		doc.getDocumentElement().normalize();
 
 		lstNode = doc.getElementsByTagName("node");
-		for (int i = 0; i < lstNode.getLength(); i++) {
+		for (int i = 0; i < lstNode.getLength(); i++)
+		{
 			objNode = lstNode.item(i);
 			strName = objNode.getAttributes().item(0).getTextContent();
 			
@@ -97,7 +112,8 @@ public class Test {
 			for (int j = 0; j < lstChildNode.getLength(); j++)
 			{
 				objChildNode = lstChildNode.item(j);
-				if (objChildNode.getNodeType() == Node.ELEMENT_NODE) {
+				if (objChildNode.getNodeType() == Node.ELEMENT_NODE)
+				{
 					switch (objChildNode.getAttributes().item(0).getTextContent())
 					{
 						case "a_x":
@@ -133,6 +149,7 @@ public class Test {
 		
 		return gGraph;
 	}
+	
 	public void ReducedGraph(Graph g){
 		ArrayList<Vertex> gvs = new ArrayList<Vertex>();
 		for(Vertex v : g.GetVertex()) gvs.add(v);
@@ -148,14 +165,13 @@ public class Test {
 				else addedge.SetTimecost("C"+v.GetLabel()+" + "+addedge.GetTimecost());
 				g.AddEdge(addedge);
 				g.DeleteVertex(v);
-				g.DeleteEdge(v.GetInEdge().get(0));
-				g.DeleteEdge(v.GetOutEdge().get(0));
 				}
 		}
 		//Put Start node in the first
 		Vertex start = g.GetVertexByLabel("START");
-		g.DeleteVertex(g.GetVertexByLabel("START"));
+		g.GetVertex().remove(start);
 		g.GetVertex().add(0, start);
+		
 		//Reassign the edge label
 		int k=1;
 		for(Vertex v : g.GetVertex()){
@@ -229,7 +245,6 @@ public class Test {
 				eFlow = lstVertex.get(lstVertex.size() - 1).FindEdge(lstVertex.get(0), false);
 				if (eFlow != null)
 				{
-					//System.out.println("Independent Flow " + eFlow.GetLabel() + " : " + eFlow.GetSource().GetLabel() + " -> " + eFlow.GetTarget().GetLabel());
 					eFlow.SetIndependent(true);
 					independentEdges.add(eFlow);
 				}
@@ -241,7 +256,7 @@ public class Test {
 		while (lstVertex.size() != 0);
 		
 		// *Debug print
-		String temp;
+		/*String temp;
 		for (ArrayList<Vertex> l : lstCycleVertex)
 		{
 			temp = "Cycle: ";
@@ -251,7 +266,7 @@ public class Test {
 			}
 			System.out.println(temp.substring(0, temp.length() - 2));
 		}
-		System.out.println();
+		System.out.println();*/
 		
 		// Generate dependent flow equations
 		String strEquation;
