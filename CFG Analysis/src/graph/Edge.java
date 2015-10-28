@@ -1,5 +1,5 @@
 package graph;
-import static graph.GraphConstants.*;
+import static graph.Constant.*;
 
 import java.awt.Color;
 
@@ -39,79 +39,79 @@ public class Edge
 		else timecost="C"+pTarget.GetLabel();
 	}
   
-    public String getCondition(){
+    public String GetCondition(){
     	return condition;
     }
-    public void setCondition(String condition){
+    public void SetCondition(String condition){
     	this.condition=condition;
     }
-	public String getLooptype(){
+	public String GetLooptype(){
 		return looptype;
 	}
-	public void setLooptype(String looptype){
+	public void SetLooptype(String looptype){
 		this.looptype=looptype;
 	}
-	public String getTimecost(){
+	public String GetTimecost(){
 		return timecost;
 	}
 	
-	public void setTimecost(String timecost){
+	public void SetTimecost(String timecost){
 		this.timecost=timecost;
 	}
 
-	public boolean getVisible()
+	public boolean GetVisible()
 	{
 		return visible;
 	}
-	public void setVisible(boolean pVisible)
+	public void SetVisible(boolean pVisible)
 	{
 		visible = pVisible;
 	}
-	public int getCurve()
+	public int GetCurve()
 	{
 		return curve;
 	}
-	public void setCurve(int pCurve)
+	public void SetCurve(int pCurve)
 	{
 		curve = pCurve;
 	}
-	public Color getColor()
+	public Color GetColor()
 	{
 		return color;
 	}
-	public void setColor(Color pColor)
+	public void SetColor(Color pColor)
 	{
 		color = pColor;
 	}
-	public String getCost()
+	public String GetCost()
 	{
 		return cost;
 	}
-	public void setCost(String pCost)
+	public void SetCost(String pCost)
 	{
 		cost = pCost;
 	}
-	public String getEquation()
+	public String GetEquation()
 	{
 		return equation;
 	}
-	public void setEquation(String pEquation)
+	public void SetEquation(String pEquation)
 	{
 		equation = pEquation;
 	}
-	public String getLabel()
+	public String GetLabel()
 	{
 		return label;
 	}
-	public void setLabel(String pLabel)
+	public void SetLabel(String pLabel)
 	{
 		label = pLabel;
 	}
-	public boolean getIndependent()
+	public boolean GetIndependent()
 	{
 		return independent;
 	}
-	public void setIndependent(boolean pIndependent)
+	public void SetIndependent(boolean pIndependent)
 	{
 		independent = pIndependent;
 		if (pIndependent)
@@ -119,21 +119,21 @@ public class Edge
 		else
 			color = EDGECOLOR;
 	}
-	public boolean getVisited()
+	public boolean GetVisited()
 	{
 		return visited;
 	}
-	public void setVisited(boolean pVisited)
+	public void SetVisited(boolean pVisited)
 	{
 		visited = pVisited;
 	}
 	
-	public Vertex getSource()
+	public Vertex GetSource()
 	{
 		return source;
 	}
 	
-	public Vertex getTarget()
+	public Vertex GetTarget()
 	{
 		return target;
 	}

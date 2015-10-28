@@ -1,6 +1,6 @@
 package control_flow;
 
-import static graph.GraphConstants.*;
+import static graph.Constant.*;
 import graph.*;
 import java.awt.*;
 import javax.swing.*;
@@ -33,7 +33,7 @@ public class DrawingPanel extends JPanel
        	Point pEnd, pStart;			// Start point of source and target vertex
        	Point pCenter1, pCenter2;	// Center of vertices
        	
-       	for (Vertex v : graph.getVerticesList())
+       	for (Vertex v : graph.GetVertex())
        	{
        		if (v.GetVisible())		// In case we want to hide a vertex and without having to delete it
        		{
@@ -42,19 +42,19 @@ public class DrawingPanel extends JPanel
 	       		g2.drawString(v.GetLabel(), v.GetX() + 13, v.GetY() + 10);
        		}
        	}
-       	for (Edge e : graph.getEdgeList())
+       	for (Edge e : graph.GetEdge())
        	{
-       		if (e.getVisible())		// In case we want to hide an edge (ie. virtual edge from END -> START)
+       		if (e.GetVisible())		// In case we want to hide an edge (ie. virtual edge from END -> START)
        		{
-	       		g2.setColor(e.getColor());
-	           	pCenter1 = new Point (e.getTarget().GetX() + VERTEXSIZE / 2, e.getTarget().GetY() + VERTEXSIZE / 2);
-	           	pCenter2 = new Point (e.getSource().GetX() + VERTEXSIZE / 2, e.getSource().GetY() + VERTEXSIZE / 2);
+	       		g2.setColor(e.GetColor());
+	           	pCenter1 = new Point (e.GetTarget().GetX() + VERTEXSIZE / 2, e.GetTarget().GetY() + VERTEXSIZE / 2);
+	           	pCenter2 = new Point (e.GetSource().GetX() + VERTEXSIZE / 2, e.GetSource().GetY() + VERTEXSIZE / 2);
 	
 	            dblAngle = Math.atan2(pCenter1.y - pCenter2.y, pCenter1.x - pCenter2.x);
-	            pEnd = new Point(pCenter1.x + (int)(GraphConstants.VERTEXSIZE / 2 * Math.cos(dblAngle + Math.PI)), pCenter1.y + (int)(VERTEXSIZE / 2 * Math.sin(dblAngle + Math.PI)));
+	            pEnd = new Point(pCenter1.x + (int)(Constant.VERTEXSIZE / 2 * Math.cos(dblAngle + Math.PI)), pCenter1.y + (int)(VERTEXSIZE / 2 * Math.sin(dblAngle + Math.PI)));
 	            pStart = new Point(pCenter2.x + (int)(VERTEXSIZE / 2 * Math.cos(dblAngle)), pCenter2.y + (int)(VERTEXSIZE / 2 * Math.sin(dblAngle)));
 	
-	            intCurve = e.getCurve();
+	            intCurve = e.GetCurve();
 	            if (intCurve == 0)
 	            {
 	               	intXText = (int) ((pStart.x + pEnd.x)/2 + 5 * Math.abs(Math.sin(dblAngle)));
@@ -65,8 +65,8 @@ public class DrawingPanel extends JPanel
 	               	intXText = (int) ((pStart.x + pEnd.x)/2 + 30 * intCurve * Math.sin(dblAngle));
 	               	intYText = (int) ((pStart.y + pEnd.y)/2 - 10 * Math.cos(dblAngle));
 	            }
-	       		DrawCurve(g2, pStart.x, pStart.y, pEnd.x, pEnd.y, dblAngle, intCurve, e.getLabel());
-	        	g.drawString(e.getLabel(), intXText, intYText);
+	       		DrawCurve(g2, pStart.x, pStart.y, pEnd.x, pEnd.y, dblAngle, intCurve, e.GetLabel());
+	        	g.drawString(e.GetLabel(), intXText, intYText);
        		}
        	}
     }

@@ -2,7 +2,7 @@ package graph;
 
 import java.awt.Color;
 import java.util.ArrayList;
-import static graph.GraphConstants.*;
+import static graph.Constant.*;
 
 public class Vertex 
 {
@@ -115,7 +115,7 @@ public class Vertex
 	{
 		for (Edge e : lstOutEdge)
 		{
-			if (e.getTarget() == pTarget && e.getIndependent() == pIndependent)
+			if (e.GetTarget() == pTarget && e.GetIndependent() == pIndependent)
 			{
 				return e;
 			}
@@ -126,7 +126,7 @@ public class Vertex
 	{
 		for (Edge e : lstInEdge)
 		{
-			if (e.getSource() == pSource && e.getIndependent() == pIndependent)
+			if (e.GetSource() == pSource && e.GetIndependent() == pIndependent)
 			{
 				return e;
 			}
@@ -137,14 +137,14 @@ public class Vertex
 	{
 		for (Edge e : lstOutEdge)
 		{
-			if (e.getTarget() == pVertex && e.getIndependent() == pIndependent)
+			if (e.GetTarget() == pVertex && e.GetIndependent() == pIndependent)
 			{
 				return e;
 			}
 		}
 		for (Edge e : lstInEdge)
 		{
-			if (e.getSource() == pVertex && e.getIndependent() == pIndependent)
+			if (e.GetSource() == pVertex && e.GetIndependent() == pIndependent)
 			{
 				return e;
 			}
@@ -153,16 +153,13 @@ public class Vertex
 	}
 	public Edge FindDiffIndepEdge(Vertex pVertex)
 	{
+		ArrayList<Edge> edges = new ArrayList<Edge>();
 		for (Edge e : lstOutEdge)
-			if (e.getTarget() == pVertex && e.getIndependent() == true && e.getVisited() ==false)
-			{e.setVisited(true); return e;}
+			if (e.GetTarget() == pVertex && e.GetIndependent() == true && e.GetVisited() ==false)
+			{e.SetVisited(true); return e;}
 		for (Edge e : lstInEdge)
-			if (e.getSource() == pVertex && e.getIndependent() == true && e.getVisited() ==false)
-			{e.setVisited(true); return e;}
+			if (e.GetSource() == pVertex && e.GetIndependent() == true && e.GetVisited() ==false)
+			{e.SetVisited(true); return e;}
 		return null;
-	}
-	
-	public Vertex copyVertex(){
-		return new Vertex(name, label, type, x, y);
 	}
 }
