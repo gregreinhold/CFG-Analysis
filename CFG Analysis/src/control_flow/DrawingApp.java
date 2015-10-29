@@ -14,7 +14,6 @@ public class DrawingApp extends javax.swing.JFrame
     {
     	super("CFG Analysis");
     	this.setSize(500, 500);
-    	this.setDefaultCloseOperation(javax.swing.JFrame.EXIT_ON_CLOSE);
     
     	_drawPanel = new DrawingPanel(graph);
 	    

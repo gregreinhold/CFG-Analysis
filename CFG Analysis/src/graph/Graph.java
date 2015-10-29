@@ -1,6 +1,6 @@
 package graph;
 
-import static graph.Constant.*;
+import static graph.GraphConstants.*;
 import java.util.*;
 
 public class Graph 
@@ -8,11 +8,11 @@ public class Graph
 	private ArrayList<Vertex> lstVertex = new ArrayList<Vertex>();
 	private ArrayList<Edge> lstEdge = new ArrayList<Edge>();
 
-	public ArrayList<Edge> GetEdge()
+	public ArrayList<Edge> getEdgeList()
 	{
 		return lstEdge;
 	}
-	public ArrayList<Vertex> GetVertex()
+	public ArrayList<Vertex> getVerticesList()
 	{
 		return lstVertex;
 	}
@@ -24,8 +24,8 @@ public class Graph
 	public void AddEdge(Edge pNewEdge)
 	{
 		lstEdge.add(pNewEdge);
-		pNewEdge.GetSource().GetOutEdge().add(pNewEdge);
-		pNewEdge.GetTarget().GetInEdge().add(pNewEdge);
+		pNewEdge.getSource().GetOutEdge().add(pNewEdge);
+		pNewEdge.getTarget().GetInEdge().add(pNewEdge);
 	}
 
 	public Vertex GetVertexByLabel(String pLabel)
@@ -50,7 +50,7 @@ public class Graph
 	{
 		for (Edge e : lstEdge)
 		{ 
-			if (e.GetLabel().toUpperCase().equals(pLabel.toUpperCase()))	// Case insensitive
+			if (e.getLabel().toUpperCase().equals(pLabel.toUpperCase()))	// Case insensitive
 				return e;
 		}
 		return null;
@@ -59,8 +59,8 @@ public class Graph
 	public void DeleteEdge(Edge e)
 	{
 		lstEdge.remove(e);						// Remove from graph edge list
-		e.GetTarget().GetInEdge().remove(e);	// Remove from target's InEdge list
-		e.GetSource().GetOutEdge().remove(e);	// Remove from source's OutEdge list
+		e.getTarget().GetInEdge().remove(e);	// Remove from target's InEdge list
+		e.getSource().GetOutEdge().remove(e);	// Remove from source's OutEdge list
 	}
 	
 	public void DeleteVertex(Vertex v)
@@ -68,11 +68,11 @@ public class Graph
 		lstVertex.remove(v);			// Remove from graph vertex list
 		for (Edge e : v.GetOutEdge())	// Remove all edges leaving v from targets' InEdge list
 		{
-			e.GetTarget().GetInEdge().remove(e);
+			e.getTarget().GetInEdge().remove(e);
 		}
 		for (Edge e : v.GetInEdge())	// Remove all edges entering v from sources' OutEdge list
 		{
-			e.GetSource().GetOutEdge().remove(e);
+			e.getSource().GetOutEdge().remove(e);
 		}
 	}
 	
@@ -102,10 +102,10 @@ public class Graph
             // Forward Edges
             for (Edge eOutgoing : pvCurrent.GetOutEdge())
             {
-                if (!eOutgoing.GetVisited() && !eOutgoing.GetIndependent())
+                if (!eOutgoing.getVisited() && !eOutgoing.getIndependent())
                 {
-                    eOutgoing.SetVisited(true);
-                    vTarget = eOutgoing.GetTarget();
+                    eOutgoing.setVisited(true);
+                    vTarget = eOutgoing.getTarget();
                     vTarget.SetPrevVertex(pvCurrent);
                     if (FindCycle(vTarget, plstVisited))
                     	return true;
@@ -115,10 +115,10 @@ public class Graph
             // Backward Edges
             for (Edge eIncoming : pvCurrent.GetInEdge())
             {
-                if (!eIncoming.GetVisited() && !eIncoming.GetIndependent())
+                if (!eIncoming.getVisited() && !eIncoming.getIndependent())
                 {
-                	eIncoming.SetVisited(true);
-                    vTarget = eIncoming.GetSource();
+                	eIncoming.setVisited(true);
+                    vTarget = eIncoming.getSource();
                     vTarget.SetPrevVertex(pvCurrent);
                     if (FindCycle(vTarget, plstVisited))
                     	return true;
@@ -137,8 +137,8 @@ public class Graph
 		for (Edge e : lstEdge)
 		{
 			if (pResetAll)
-				e.SetIndependent(false);
-			e.SetVisited(false);
+				e.setIndependent(false);
+			e.setVisited(false);
 		}
 	}
 	
@@ -156,16 +156,16 @@ public class Graph
 				blnForwardCycle = false;
 				blnBackwardCycle = false;
 				int angle=0;		
-				e.SetVisited(true);
-				vTarget = e.GetTarget();
+				e.setVisited(true);
+				vTarget = e.getTarget();
 				for (Edge e2 : v.GetOutEdge())
 				{
-					if (!e2.GetVisited() && e2.GetTarget() == vTarget)
+					if (!e2.getVisited() && e2.getTarget() == vTarget)
 					{
-						e.SetVisited(true);
+						e.setVisited(true);
 						blnForwardCycle = true;
-						e.SetCurve(1);
-						e2.SetCurve((int) Math.pow(-1, ++angle) * angle);
+						e.setCurve(1);
+						e2.setCurve((int) Math.pow(-1, ++angle) * angle);
 					}
 				}/*
 				for (Edge e2 : v.GetInEdge())
@@ -196,7 +196,7 @@ public class Graph
 		}
 		for (Edge e : lstEdge)
 		{
-			e.SetVisited(false);
+			e.setVisited(false);
 		}
 	}
 }
