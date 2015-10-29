@@ -39,6 +39,7 @@ public class Edge
 		else if(Integer.parseInt(pTarget.getLabel())<Integer.parseInt(pSource.getLabel())) timecost="";
 		else timecost="C"+pTarget.getLabel();
 	}
+<<<<<<< HEAD
 
 	public FlowType getFlowType()
 	{
@@ -48,6 +49,9 @@ public class Edge
 	{
 		flowType = ft;
 	}
+=======
+  
+>>>>>>> refs/remotes/origin/master
     public String getCondition(){
     	return condition;
     }
@@ -92,11 +96,19 @@ public class Edge
 	{
 		color = pColor;
 	}
+<<<<<<< HEAD
 	public String getValue()
+=======
+	public String getCost()
+>>>>>>> refs/remotes/origin/master
 	{
 		return value;
 	}
+<<<<<<< HEAD
 	public void setValue(String pValue)
+=======
+	public void setCost(String pCost)
+>>>>>>> refs/remotes/origin/master
 	{
 		value = pValue;
 	}

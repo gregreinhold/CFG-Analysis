@@ -1,6 +1,5 @@
 package graph;
 
-
 import java.awt.Color;
 
 public final class GraphConstants {

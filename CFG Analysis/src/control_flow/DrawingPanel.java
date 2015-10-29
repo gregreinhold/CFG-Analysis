@@ -45,8 +45,13 @@ public class DrawingPanel extends JPanel
        		if (e.getVisible())		// In case we want to hide an edge (ie. virtual edge from END -> START)
        		{
 	       		g2.setColor(e.getColor());
+<<<<<<< HEAD
 	           	pCenter1 = new Point (e.getTarget().getX() + VERTEXSIZE / 2, e.getTarget().getY() + VERTEXSIZE / 2);
 	           	pCenter2 = new Point (e.getSource().getX() + VERTEXSIZE / 2, e.getSource().getY() + VERTEXSIZE / 2);
+=======
+	           	pCenter1 = new Point (e.getTarget().GetX() + VERTEXSIZE / 2, e.getTarget().GetY() + VERTEXSIZE / 2);
+	           	pCenter2 = new Point (e.getSource().GetX() + VERTEXSIZE / 2, e.getSource().GetY() + VERTEXSIZE / 2);
+>>>>>>> refs/remotes/origin/master
 	
 	            dblAngle = Math.atan2(pCenter1.y - pCenter2.y, pCenter1.x - pCenter2.x);
 	            pEnd = new Point(pCenter1.x + (int)(GraphConstants.VERTEXSIZE / 2 * Math.cos(dblAngle + Math.PI)), pCenter1.y + (int)(VERTEXSIZE / 2 * Math.sin(dblAngle + Math.PI)));
