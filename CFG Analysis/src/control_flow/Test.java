@@ -8,6 +8,7 @@ import org.w3c.dom.NodeList;
 import org.w3c.dom.Node;
 import org.w3c.dom.Element;
 
+import java.awt.Desktop;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -30,21 +31,29 @@ public class Test {
 		//String sCodePath = "TestAlgorithms.TestFunction3.src.graphml";
 		String sCodePath = "code.txt";
 		
-		if (sCodePath.length() > 0)
+		try
 		{
-			if (sGraphPath.length() > 0)
-				gGraph = ReadXML(sGraphPath, sCodePath);
-			else 
-				gGraph = new GraphParser().Parse(sCodePath);
+			//System.out.println(new GraphParser().EvalExpr("(C(5*2,2) - 1)^3 + C(10,5)"));
+			if (sCodePath.length() > 0)
+			{
+				if (sGraphPath.length() > 0)
+					gGraph = ReadXML(sGraphPath, sCodePath);
+				else 
+					gGraph = new GraphParser().Parse(sCodePath);
+			}
+			if (gGraph != null)
+			{
+				ReducedGraph(gGraph);
+				AnalysisGraph(gGraph);
+				gGraph.PrintGraph(true, true);
+				gGraph.CurveEdges();
+				new DrawingApp(gGraph);
+				generateDot(gGraph);
+			}
 		}
-		if (gGraph != null)
+		catch (Exception ex)
 		{
-			ReducedGraph(gGraph);
-			AnalysisGraph(gGraph);
-			gGraph.PrintGraph(true, true);
-			gGraph.CurveEdges();
-			new DrawingApp(gGraph);
-			generateDot(gGraph);
+			System.out.println(ex.getMessage());
 		}
 	}
 	
@@ -218,6 +227,16 @@ public class Test {
 		}catch(IOException e){
 			e.printStackTrace();
 		}
+
+		try
+		{
+			new ProcessBuilder("graphviz-2.38\\bin\\dot", "-Tpng", "test.dot", "-o", "test.png").start();
+			Desktop.getDesktop().open(new File("test.png"));
+		} 
+		catch (IOException e)
+		{
+			System.out.println(e.getMessage());
+		}
 	}
 
 	// This analyze the graph, obviously
@@ -232,7 +251,7 @@ public class Test {
         ArrayList<Edge> independentEdges = new ArrayList<Edge>(); // list of independent flows
  		// Add virtual edge from start to end, so we can assign equation of all edges outside any loops to 1
 		eFlow = new Edge(vEnd, vStart, "e0");
-		eFlow.SetCost("1");
+		eFlow.SetValue("1");
 		eFlow.SetVisible(false);
 		pGraph.AddEdge(eFlow);
 		
@@ -282,7 +301,7 @@ public class Test {
 			if (eFlow != null)
 			{
 				blnForward = (eFlow.GetTarget() == vTgt);		// Direction of independent flow, A -> B = Forward, A <- B = Backward
-				strIndFlowLabel = eFlow.GetCost();				// If the flow has an assigned cost, use that instead of the flow label
+				strIndFlowLabel = eFlow.GetValue();				// If the flow has an assigned value, use that instead of the flow label
 				if (strIndFlowLabel.length() == 0)
 					strIndFlowLabel = eFlow.GetLabel();
 			}
@@ -306,7 +325,6 @@ public class Test {
 					strEquation += ((blnForward == (eFlow.GetTarget() == vTgt)) ? ((strEquation.length() == 0) ? "" : " + ") : " - ") + strIndFlowLabel;				
 					eFlow.SetEquation(strEquation);
 				}
-				
 			}
 		}
 		pGraph.ResetGraph(false);

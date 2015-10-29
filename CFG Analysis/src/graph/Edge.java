@@ -15,9 +15,9 @@ public class Edge
 	private int curve = 0;
 	private boolean visible = true;
 	
-	private String equation = ""; 	// set it as string for now
-	private String cost = "";		// set it as string for now 
-	                                // this is the value of e, not time cost
+	private String equation = "";
+	private String value = "";
+	                                
 	private String timecost="";
 	private String looptype=null;
 	private String condition=null;
@@ -83,13 +83,13 @@ public class Edge
 	{
 		color = pColor;
 	}
-	public String GetCost()
+	public String GetValue()
 	{
-		return cost;
+		return value;
 	}
-	public void SetCost(String pCost)
+	public void SetValue(String pValue)
 	{
-		cost = pCost;
+		value = pValue;
 	}
 	public String GetEquation()
 	{

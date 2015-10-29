@@ -54,9 +54,9 @@ public class GraphParser
 						{
 							tokenType = TokenType.CONSTANT;
 						}
-						else if (sToken.contains("[") || sToken.contains("]") || sToken.contains("(") || sToken.contains(")"))	// Should check if parenthesis match
+						else if (sToken.contains("[") || sToken.contains("]") || sToken.contains("(") || sToken.contains(")"))
 						{
-							tokenType = TokenType.EXPR;	// function call, array, group of operator operands ...etc
+							tokenType = TokenType.EXPR;	// function call, array, parenthesized group of operator operands ...etc
 						}
 						else
 						{
@@ -69,8 +69,7 @@ public class GraphParser
 				}
 				if (bOperator)
 				{
-					// If first token of line is a variable or FOR then this equal sign must be following it 
-					// immediately and is an assignment, not equal.
+					// If first token of line is a variable or FOR then this equal sign must be an assignment, not equal.
 					if (c == '=' && (lstToken.peekFirst().type == TokenType.VARIABLE || lstToken.peekFirst().value.equals(Keyword.FOR.Value())))
 						lstToken.add(new Token(TokenType.ASSIGN, Character.toString(c)));
 					else lstToken.add(new Token(TokenType.OPERATOR, Character.toString(c)));
@@ -97,7 +96,6 @@ public class GraphParser
 						throw new Exception("Syntax Error");
 				}
 				sToken += c;
-				sToken = sToken.trim();
 			}
 		}
 		if (bArrayOpen || iParenOpen > 0)
@@ -228,7 +226,7 @@ public class GraphParser
 							lstExpectedToken.add(TokenType.VARIABLE);
 							lstExpectedToken.add(TokenType.EXPR);
 							lstLineKeyword.add(Keyword.TO);
-							mVariable.put(sAssignVar, sAssignVal);
+							mVariable.put(sAssignVar, sAssignVal.trim());
 						}
 					}
 					else	// Token is not a keyword
@@ -322,9 +320,7 @@ public class GraphParser
 				lstExpectedToken.clear();
 				
 				if (lstLineKeyword.peekLast() == Keyword.ASSIGN)
-				{
 					mVariable.put(sAssignVar, sAssignVal.trim());
-				}
 				
 				// Add node
 				if (sExpr.trim().length() > 0)
@@ -425,70 +421,6 @@ public class GraphParser
 		
 		return gGraph;
 	}
-
-	// This is for integer only, but can be extended to double easily
-	// Infinite recursion is likely, especially when reading the likes of var = var + 1
-	public int EvalExpr(String expr)
-	{
-		int iNum = 0;
-		int iOperatorIndex;
-		boolean bIsInt = true;
-		
-		expr = expr.trim();
-		
-		try
-		{
-			iNum = Integer.parseInt(expr);
-		}
-		catch (Exception e)
-		{
-			bIsInt = false;
-		}
-		if (!bIsInt)
-		{
-			// Remove meaningless parenthesis
-			while (expr.startsWith("(") && expr.endsWith(")"))
-			{
-				expr = expr.substring(1, expr.length() - 1);
-			}
-			
-			if (mVariable.containsKey(expr))
-				return EvalExpr(mVariable.get(expr));	// Very probable infinite recursion
-			
-			// To preserve order of arithmetic operation, split +,- before *,/.
-			iOperatorIndex = FindOperatorIndex(expr, '+');
-			if (iOperatorIndex > -1)
-			{
-				iNum = EvalExpr(expr.substring(0, iOperatorIndex)) + EvalExpr(expr.substring(iOperatorIndex + 1, expr.length()));
-			}
-			else
-			{
-				iOperatorIndex = FindOperatorIndex(expr, '-');
-				if (iOperatorIndex > -1)
-				{
-					iNum = EvalExpr(expr.substring(0, iOperatorIndex)) - EvalExpr(expr.substring(iOperatorIndex + 1, expr.length()));
-				}
-				else
-				{
-					iOperatorIndex = FindOperatorIndex(expr, '*');
-					if (iOperatorIndex > -1)
-					{
-						iNum = EvalExpr(expr.substring(0, iOperatorIndex)) * EvalExpr(expr.substring(iOperatorIndex + 1, expr.length()));
-					}
-					else
-					{
-						iOperatorIndex = FindOperatorIndex(expr, '/');
-						if (iOperatorIndex > -1)
-						{
-							iNum = EvalExpr(expr.substring(0, iOperatorIndex)) / EvalExpr(expr.substring(iOperatorIndex + 1, expr.length()));
-						}
-					}
-				}
-			}
-		}
-		
-		return iNum;
-	}
 	
 	private int FindOperatorIndex(String s, char cOperator)
 	{
@@ -505,6 +437,136 @@ public class GraphParser
 				return i;
 		}
 		return -1;
+	}
+	
+	// Supports add, subtract, multiply, divide, power, n choose k
+	// x = x + 1 -> infinite recursion
+	// x = 1, y = x, x = y -> same, I don't know how to fix this, may be we can store line # of assignment to back track variable values
+	public int EvalExpr(String expr) throws Exception
+	{
+		int iNum = 0;
+		int iOperatorIndex;
+		int[] aOperatorIndex;
+		boolean bIsInt = true;
+		
+		// Remove meaningless parenthesis/spaces
+		expr = RemoveParenthesis(expr);
+		
+		// If expr is an int, return it
+		try
+		{
+			iNum = Integer.parseInt(expr);
+		}
+		catch (Exception e)
+		{
+			bIsInt = false;
+		}
+		if (!bIsInt)	// Can probably put this entire block inside the catch block...
+		{
+			if (mVariable.containsKey(expr))			// Check variable table for assignment
+				return EvalExpr(mVariable.get(expr));	// Very probable infinite recursion
+
+			// Single pass on expr
+			aOperatorIndex = FindOperatorIndices(expr);
+			
+			// To preserve order of arithmetic operation, split +,- before *,/.
+			if (aOperatorIndex[ADD] > -1)
+			{
+				iNum = EvalExpr(expr.substring(0, aOperatorIndex[ADD])) + EvalExpr(expr.substring(aOperatorIndex[ADD] + 1, expr.length()));
+			}
+			else if (aOperatorIndex[SUB] > -1)
+			{
+				iNum = EvalExpr(expr.substring(0, aOperatorIndex[SUB])) - EvalExpr(expr.substring(aOperatorIndex[SUB] + 1, expr.length()));
+			}
+			else if (aOperatorIndex[MUL] > -1)
+			{
+				iNum = EvalExpr(expr.substring(0, aOperatorIndex[MUL])) * EvalExpr(expr.substring(aOperatorIndex[MUL] + 1, expr.length()));
+			}
+			else if (aOperatorIndex[DIV] > -1)
+			{
+				iNum = EvalExpr(expr.substring(0, aOperatorIndex[DIV])) / EvalExpr(expr.substring(aOperatorIndex[DIV] + 1, expr.length()));
+			}
+			else if (aOperatorIndex[POW] > -1)
+			{
+				iNum = (int) Math.pow(EvalExpr(expr.substring(0, aOperatorIndex[POW])), EvalExpr(expr.substring(aOperatorIndex[POW] + 1, expr.length())));
+			}
+			else
+			{
+				// This block is for other math operations
+				iOperatorIndex = expr.indexOf(',');
+				if (expr.startsWith("C(") && expr.endsWith(")") && iOperatorIndex > -1)
+				{
+					iNum = C(EvalExpr(expr.substring(2, iOperatorIndex)), EvalExpr(expr.substring(iOperatorIndex + 1, expr.length() - 1)));
+				}
+			}
+		}
+		
+		return iNum;
+	}
+	
+	public String RemoveParenthesis(String s)
+	{
+		char c;
+		int iOpenParen = 0;
+		String sReturn = s.trim();
+		String sTemp = sReturn;
+		
+		while (sTemp.startsWith("(") && sTemp.endsWith(")"))
+		{
+			sTemp = sTemp.substring(1, sTemp.length() - 1).trim();
+			for (int i = 0; i < sTemp.length(); i++)
+			{
+				c = sTemp.charAt(i);
+				if (c == '(')
+					iOpenParen++;
+				else if (c == ')')
+					iOpenParen--;
+				if (iOpenParen < 0)
+					break;
+			}
+			if (iOpenParen != 0)
+				break;
+			else sReturn = sTemp;
+		}
+		return sReturn;
+	}
+	
+	private int[] FindOperatorIndices(String s)
+	{
+		int iOpenParen = 0;
+		int[] aOperatorIndex = {-1, -1, -1, -1, -1};
+		char c;
+		
+		for (int i = 0; i < s.length(); i++)
+		{
+			c = s.charAt(i);
+			if (c == '(')
+				iOpenParen++;
+			else if (c == ')')
+				iOpenParen--;
+			else if (iOpenParen == 0)
+			{
+				switch (c)
+				{
+					case '+':
+						aOperatorIndex[ADD] = i;
+						break;
+					case '-':
+						aOperatorIndex[SUB] = i;
+						break;
+					case '*':
+						aOperatorIndex[MUL] = i;
+						break;
+					case '/':
+						aOperatorIndex[DIV] = i;
+						break;
+					case '^':
+						aOperatorIndex[POW] = i;
+						break;
+				}
+			}
+		}
+		return aOperatorIndex;
 	}
 
 	// This gets the type of flow of a certain edge
@@ -595,7 +657,27 @@ public class GraphParser
 		return sb.toString().trim();
 	}
 	
-	
+	public int C(int n, int k) throws Exception
+	{
+		int iFactN = 1;
+		int iFactK = 1;
+		int iFactNK = 1;
+		
+		if (n >= k)
+		{
+			for (int i = 2; i <= n; i++)
+			{
+				iFactN *= i;
+				if (i == k)
+					iFactK = iFactN;
+				if (i == n - k)
+					iFactNK = iFactN;
+			}
+		}
+		else throw new Exception("n < k");
+		
+		return iFactN / (iFactK * iFactNK);
+	}
 	
 	// DEBUG PRINT
 	private void PrintVariables(HashMap<String, String> mVar)
