@@ -18,7 +18,7 @@ public class Edge
 	private String equation = "";
 	private String value = "";
 	private FlowType flowType = null;
-	                                
+	
 	private String timecost="";
 	private String looptype=null;
 	private String condition=null;
@@ -39,7 +39,7 @@ public class Edge
 		else if(Integer.parseInt(pTarget.getLabel())<Integer.parseInt(pSource.getLabel())) timecost="";
 		else timecost="C"+pTarget.getLabel();
 	}
-
+  
 	public FlowType getFlowType()
 	{
 		return flowType;
@@ -54,7 +54,7 @@ public class Edge
     public void setCondition(String condition){
     	this.condition=condition;
     }
-	public String getLooptype(){
+	public String getLoopType(){
 		return looptype;
 	}
 	public void setLooptype(String looptype){

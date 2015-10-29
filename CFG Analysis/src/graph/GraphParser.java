@@ -139,7 +139,7 @@ public class GraphParser
 		{
 			System.out.println("*** BEGIN PARSING ***");
 			vLastVertex = new Vertex("START", "START", NodeType.START.toString(), x, y);
-			gGraph.AddVertex(vLastVertex);
+			gGraph.addVertex(vLastVertex);
 
 			br = new BufferedReader(new FileReader(codeFile));
 			while((sLine = br.readLine()) != null)
@@ -338,14 +338,14 @@ public class GraphParser
 						
 						vNewVertex = new Vertex(String.valueOf(iLine), String.valueOf(iLine), nodeType.toString(), x, y);
 						vNewVertex.setExpr(sExpr);
-						gGraph.AddVertex(vNewVertex);
+						gGraph.addVertex(vNewVertex);
 						
 						eNewEdge = new Edge(vLastVertex, vNewVertex, "e" + iEdge);
 						eNewEdge.setFlowType(flowType);
-						gGraph.AddEdge(eNewEdge);	// Last vertex to merge vertex
+						gGraph.addEdge(eNewEdge);	// Last vertex to merge vertex
 						eNewEdge = new Edge(lstBranchVertex.removeLast(), vNewVertex, "e" + (iEdge + 1));
 						eNewEdge.setFlowType(flowType);
-						gGraph.AddEdge(eNewEdge);	// If branch vertex to merge vertex
+						gGraph.addEdge(eNewEdge);	// If branch vertex to merge vertex
 						
 						lstKeyword.removeLast();
 						iEdge += 2;
@@ -355,7 +355,7 @@ public class GraphParser
 						vNewVertex = lstBranchVertex.peekLast();		// Back to where the loop starts
 						eNewEdge = new Edge(vLastVertex, lstBranchVertex.removeLast(), "e" + iEdge);
 						eNewEdge.setFlowType(flowType);
-						gGraph.AddEdge(eNewEdge);
+						gGraph.addEdge(eNewEdge);
 						lstKeyword.removeLast();
 						iEdge++;
 					}
@@ -393,8 +393,8 @@ public class GraphParser
 						
 						eNewEdge = new Edge(vLastVertex, vNewVertex, "e" + iEdge);
 						eNewEdge.setFlowType(flowType);
-						gGraph.AddVertex(vNewVertex);
-						gGraph.AddEdge(eNewEdge);
+						gGraph.addVertex(vNewVertex);
+						gGraph.addEdge(eNewEdge);
 						iEdge++;
 					}
 					vLastVertex = vNewVertex;
@@ -415,17 +415,12 @@ public class GraphParser
 			}
 			
 			vNewVertex = new Vertex("EXIT", "EXIT", NodeType.END.toString(), vLastVertex.getX() + VDISTANCE, vLastVertex.getY());
-			gGraph.AddVertex(vNewVertex);
-			gGraph.AddEdge(new Edge(vLastVertex, vNewVertex, "e" + iEdge));
+			gGraph.addVertex(vNewVertex);
+			gGraph.addEdge(new Edge(vLastVertex, vNewVertex, "e" + iEdge));
 			System.out.println("*** END PARSING ***");
 			
 			// DEBUG PRINT
 			PrintVariables(mVariable);
-			for (Edge e : gGraph.getEdgeList())
-			{
-				System.out.println(e.getLabel() + " " + (e.getFlowType() != null ? e.getFlowType().toString() : ""));
-			}
-			System.out.println();
 		}
 		catch (Exception ex)
 		{

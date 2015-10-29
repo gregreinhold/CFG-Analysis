@@ -1,10 +1,16 @@
 package control_flow;
 
 import static graph.GraphConstants.*;
+
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Point;
+import java.awt.geom.GeneralPath;
+
+import javax.swing.JPanel;
+
 import graph.*;
-import java.awt.*;
-import javax.swing.*;
-import java.awt.geom.*;
+
 
 @SuppressWarnings("serial")
 public class DrawingPanel extends JPanel
@@ -14,9 +20,9 @@ public class DrawingPanel extends JPanel
     public DrawingPanel(Graph pGraph) 
     {
        super();
-       this.setBackground(Color.white);
-       this.setPreferredSize(new Dimension(500, 500));
-       this.setSize(new Dimension(500, 500));
+       this.setBackground(java.awt.Color.white);
+       this.setPreferredSize(new java.awt.Dimension(500, 500));
+       this.setSize(new java.awt.Dimension(500, 500));
        graph = pGraph;
     }
     
@@ -60,8 +66,8 @@ public class DrawingPanel extends JPanel
 	            }
 	            else
 	            {
-	               	intXText = (int) ((pStart.x + pEnd.x)/2 + 10 * intCurve * Math.sin(dblAngle));
-	               	intYText = (int) ((pStart.y + pEnd.y)/2 - 10 * intCurve * Math.cos(dblAngle));
+	               	intXText = (int) ((pStart.x + pEnd.x)/2 + 30 * intCurve * Math.sin(dblAngle));
+	               	intYText = (int) ((pStart.y + pEnd.y)/2 - 10 * Math.cos(dblAngle));
 	            }
 	       		DrawCurve(g2, pStart.x, pStart.y, pEnd.x, pEnd.y, dblAngle, intCurve, e.getLabel());
 	        	g.drawString(e.getLabel(), intXText, intYText);

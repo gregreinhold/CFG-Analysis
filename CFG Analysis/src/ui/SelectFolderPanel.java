@@ -45,7 +45,7 @@ public class SelectFolderPanel extends SelectPanel{
 	            	_lblFileSelected.setText(">>> " + _selectedFile.getAbsolutePath());
 	            }
 	            
-	            _frame.updateGoButtonEnabled();
+	            _uiFrame.updateGoButtonEnabled();
 	        }
 		});
 	}

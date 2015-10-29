@@ -1,6 +1,6 @@
 package graph;
 
-import java.util.*;
+import java.util.ArrayList;
 
 public class Graph 
 {
@@ -16,15 +16,15 @@ public class Graph
 		return lstVertex;
 	}
 	
-	public void AddVertex(Vertex pNewVertex)
+	public void addVertex(Vertex pNewVertex)
 	{
 		lstVertex.add(pNewVertex);
 	}
-	public void AddEdge(Edge pNewEdge)
+	public void addEdge(Edge pNewEdge)
 	{
 		lstEdge.add(pNewEdge);
-		pNewEdge.getSource().getOutEdge().add(pNewEdge);
-		pNewEdge.getTarget().getInEdge().add(pNewEdge);
+		pNewEdge.getSource().getOutEdgeList().add(pNewEdge);
+		pNewEdge.getTarget().getInEdgeList().add(pNewEdge);
 	}
 
 	public Vertex getVertexByLabel(String pLabel)
@@ -45,7 +45,7 @@ public class Graph
 		}
 		return null;
 	}
-	public Edge FindEdgeByLabel(String pLabel)
+	public Edge findEdgeByLabel(String pLabel)
 	{
 		for (Edge e : lstEdge)
 		{ 
@@ -55,24 +55,24 @@ public class Graph
 		return null;
 	}
 	
-	public void DeleteEdge(Edge e)
+	public void deleteEdge(Edge e)
 	{
-		lstEdge.remove(e);						// Remove from graph edge list
-		e.getTarget().getInEdge().remove(e);	// Remove from target's InEdge list
-		e.getSource().getOutEdge().remove(e);	// Remove from source's OutEdge list
+		lstEdge.remove(e);							// Remove from graph edge list
+		e.getTarget().getInEdgeList().remove(e);	// Remove from target's InEdge list
+		e.getSource().getOutEdgeList().remove(e);	// Remove from source's OutEdge list
 	}
 	
-	public void DeleteVertex(Vertex v)
+	public void deleteVertex(Vertex v)
 	{
-		lstVertex.remove(v);			// Remove from graph vertex list
-		for (Edge e : v.getOutEdge())	// Remove all edges leaving v from targets' InEdge list
+		lstVertex.remove(v);				// Remove from graph vertex list
+		for (Edge e : v.getOutEdgeList())	// Remove all edges leaving v from targets' InEdge list
 		{
-			e.getTarget().getInEdge().remove(e);
+			e.getTarget().getInEdgeList().remove(e);
 			lstEdge.remove(e);
 		}
-		for (Edge e : v.getInEdge())	// Remove all edges entering v from sources' OutEdge list
+		for (Edge e : v.getInEdgeList())	// Remove all edges entering v from sources' OutEdge list
 		{
-			e.getSource().getOutEdge().remove(e);
+			e.getSource().getOutEdgeList().remove(e);
 			lstEdge.remove(e);
 		}
 	}
@@ -81,7 +81,7 @@ public class Graph
 	// If an unvisited edge leads to a visited vertex, there's a cycle
 	// Vertex has PrevVertex pointers to where it was traveled from, use that to build the list of vertices in the cycle
 	// Note that we also have to check incoming edges into the current vertex as the analysis need to find all cycle as if the graph is undirected
-	public boolean FindCycle(Vertex pvCurrent, ArrayList<Vertex> plstVisited)
+	public boolean findCycle(Vertex pvCurrent, ArrayList<Vertex> plstVisited)
     {
         Vertex vTarget;
 
@@ -101,27 +101,27 @@ public class Graph
             pvCurrent.setVisited(true);
             
             // Forward Edges
-            for (Edge eOutgoing : pvCurrent.getOutEdge())
+            for (Edge eOutgoing : pvCurrent.getOutEdgeList())
             {
                 if (!eOutgoing.getVisited() && !eOutgoing.getIndependent())
                 {
                     eOutgoing.setVisited(true);
                     vTarget = eOutgoing.getTarget();
                     vTarget.setPrevVertex(pvCurrent);
-                    if (FindCycle(vTarget, plstVisited))
+                    if (findCycle(vTarget, plstVisited))
                     	return true;
                 }
             }
 
             // Backward Edges
-            for (Edge eIncoming : pvCurrent.getInEdge())
+            for (Edge eIncoming : pvCurrent.getInEdgeList())
             {
                 if (!eIncoming.getVisited() && !eIncoming.getIndependent())
                 {
                 	eIncoming.setVisited(true);
                     vTarget = eIncoming.getSource();
                     vTarget.setPrevVertex(pvCurrent);
-                    if (FindCycle(vTarget, plstVisited))
+                    if (findCycle(vTarget, plstVisited))
                     	return true;
                 }
             }
@@ -129,7 +129,7 @@ public class Graph
         return false;
     }
 	
-	public void ResetGraph(boolean pResetAll)
+	public void resetGraph(boolean pResetAll)
 	{
 		for (Vertex v : lstVertex)
 		{
@@ -145,18 +145,18 @@ public class Graph
 	
 	// Just some funky code that set the curve of edges when their endpoints are identical so they don't overlap
 	// Need a better idea to do this
-	public void CurveEdges()
+	public void curveEdges()
 	{
 		Vertex vTarget;
-		ResetGraph(false);
+		resetGraph(false);
 		for (Vertex v : lstVertex)
 		{
-			for (Edge e : v.getOutEdge())
+			for (Edge e : v.getOutEdgeList())
 			{
 				int angle=0;		
 				e.setVisited(true);
 				vTarget = e.getTarget();
-				for (Edge e2 : v.getOutEdge())
+				for (Edge e2 : v.getOutEdgeList())
 				{
 					if (!e2.getVisited() && e2.getTarget() == vTarget)
 					{

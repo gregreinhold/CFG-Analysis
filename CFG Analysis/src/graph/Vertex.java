@@ -36,7 +36,6 @@ public class Vertex
 		x = pX;
 		y = pY;
 	}
-
 	
 	public int getUpperBound()
 	{
@@ -65,6 +64,7 @@ public class Vertex
 	public String getLooptype(){
 		return looptype;
 	}
+
 	public void setLooptype(String looptype){
 		this.looptype=looptype;
 	}
@@ -99,15 +99,15 @@ public class Vertex
 	{
 		prevVertex = pPrevVertex;
 	}
-	public ArrayList<Edge> getInEdge()
+	public ArrayList<Edge> getInEdgeList()
 	{
 		return lstInEdge;
 	}
-	public ArrayList<Edge> getOutEdge()
+	public ArrayList<Edge> getOutEdgeList()
 	{
 		return lstOutEdge;
 	}
-	public ArrayList<Edge> getEdge()
+	public ArrayList<Edge> getEdgeList()
 	{
 		ArrayList<Edge> lstReturn = new ArrayList<Edge>();
 		lstReturn.addAll(lstOutEdge);
@@ -138,7 +138,7 @@ public class Vertex
 	}
 	// END Drawings
 	
-	public Edge FindOutEdge(Vertex pTarget, boolean pIndependent)
+	public Edge findOutEdge(Vertex pTarget, boolean pIndependent)
 	{
 		for (Edge e : lstOutEdge)
 		{
@@ -149,7 +149,7 @@ public class Vertex
 		}
 		return null;
 	}
-	public Edge FindInEdge(Vertex pSource, boolean pIndependent)
+	public Edge findInEdge(Vertex pSource, boolean pIndependent)
 	{
 		for (Edge e : lstInEdge)
 		{
@@ -160,7 +160,7 @@ public class Vertex
 		}
 		return null;
 	}
-	public Edge FindEdge(Vertex pVertex, boolean pIndependent)
+	public Edge findEdge(Vertex pVertex, boolean pIndependent)
 	{
 		for (Edge e : lstOutEdge)
 		{
@@ -178,7 +178,9 @@ public class Vertex
 		}
 		return null;
 	}
-	public Edge FindDiffIndepEdge(Vertex pVertex)
+	
+	
+	public Edge findDiffIndepEdge(Vertex pVertex)
 	{
 		for (Edge e : lstOutEdge)
 			if (e.getTarget() == pVertex && e.getIndependent() == true && e.getVisited() ==false)
@@ -188,8 +190,8 @@ public class Vertex
 			{e.setVisited(true); return e;}
 		return null;
 	}
-	
-	public Vertex copyVertex(){
-		return new Vertex(name, label, type, x, y);
-	}
+
+
+
+
 }

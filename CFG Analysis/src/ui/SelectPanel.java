@@ -14,10 +14,10 @@ public abstract class SelectPanel extends JPanel{
 	private static final long serialVersionUID = 2613768516722767005L;
 	protected JLabel _lblSelectFile, _lblFileSelected;
     protected File _selectedFile;
-    protected UIFrame _frame;
+    protected UIFrame _uiFrame;
 	
 	public SelectPanel(String lblSelectFileText, String notSelectedYet, UIFrame frame) {
-		_frame = frame;
+		_uiFrame = frame;
 		setBorder(new BevelBorder(BevelBorder.LOWERED, null, null, null, null));
 		setLayout(new MigLayout("", "[grow]", "[][][]"));
 		
@@ -54,7 +54,7 @@ public abstract class SelectPanel extends JPanel{
 	{
 		return hasFileSelected() && _selectedFile.getName().endsWith("txt");
 	}
-	
+
 	// returns true if the file has been selected and loaded successfully
 	public Boolean hasFileSelected(){
 		return !_lblFileSelected.getText().contains(UIConstants.OPEN_COMMAND_FAILED);
