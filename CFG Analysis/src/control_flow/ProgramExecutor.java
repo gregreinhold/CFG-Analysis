@@ -10,6 +10,7 @@ import org.w3c.dom.Element;
 
 import ui.UIFrame;
 
+import java.awt.Desktop;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -37,12 +38,17 @@ public class ProgramExecutor {
 		Graph gControlFlowGraph;
 		_frame = frame;
 		clearTextFromFrame();
-		gControlFlowGraph = readGraphMLFile(cfgFile, codeFile);
+		// File paths might have to be changed for linux
+		if (codeFile.getName().endsWith(".txt"))
+			gControlFlowGraph = new GraphParser().Parse(codeFile);
+		else 
+			gControlFlowGraph = readGraphMLFile(cfgFile, codeFile);
 		reduceGraph(gControlFlowGraph);
 		analyzeGraph(gControlFlowGraph);
 		gControlFlowGraph.curveEdges();
 		new DrawingApp(gControlFlowGraph);
 		generateDot(gControlFlowGraph, saveFolder, flowGraphFileName);
+		gControlFlowGraph.PrintGraph(false, true);		// DEBUG PRINT
 	}
 	
 
@@ -150,6 +156,7 @@ public class ProgramExecutor {
 	// Reduces input Graph g by consolidating nodes along one flow into a single edge.
 	// i.e. each Vertex will correspond to a fork/merge of flows in the graph,
 	// and each Edge corresponds to a single flow with cost = cost of the consolidated operations
+	// Note: It should be merging vertex of type = instruction, but this is more or less equivalent
 	public void reduceGraph(Graph g){
 		ArrayList<Vertex> lstVertices = new ArrayList<Vertex>();
 		for(Vertex v : g.getVerticesList()) {
@@ -167,15 +174,15 @@ public class ProgramExecutor {
 				} else {
 					newEdge.setTimecost("C"+v.getLabel()+" + "+newEdge.getTimecost());
 				}
+				newEdge.setFlowType(v.getInEdgeList().get(0).getFlowType());
 				g.addEdge(newEdge);
 				g.deleteVertex(v);
-				g.deleteEdge(v.getInEdgeList().get(0));
-				g.deleteEdge(v.getOutEdgeList().get(0));
 			}
 		}
 		//Put Start node in first
 		Vertex start = g.getVertexByLabel("START");
-		g.deleteVertex(g.getVertexByLabel("START"));
+		g.getVerticesList().remove(start);
+
 		g.getVerticesList().add(0, start);
 		//Reassign the edge label
 		int k=1;
@@ -235,8 +242,14 @@ public class ProgramExecutor {
 			}
 			bfw.write("}");
 			bfw.close();
+
+			new ProcessBuilder("dot", "-Tsvg", saveFolder + "\\" + flowGraphFileName + ".dot", "-o", saveFolder + "\\" + flowGraphFileName + ".svg").start();
+			Thread.sleep(1000);	// just in case it wasn't generated in time
+			Desktop.getDesktop().open(new File(saveFolder + "\\" + flowGraphFileName + ".svg"));
 		}catch(IOException e){
 			e.printStackTrace();
+		} catch (InterruptedException e1) {
+			e1.printStackTrace();
 		}
 	}
 
@@ -252,7 +265,7 @@ public class ProgramExecutor {
         ArrayList<Edge> independentEdges = new ArrayList<Edge>(); // list of independent flows
  		// Add virtual edge from start to end, so we can assign equation of all edges outside any loops to 1
 		eFlow = new Edge(vEnd, vStart, "e0");
-		eFlow.setCost("1");
+		eFlow.setValue("1");
 		eFlow.setVisible(false);
 		pGraph.addEdge(eFlow);
 		
@@ -265,7 +278,6 @@ public class ProgramExecutor {
 				eFlow = lstVertex.get(0).findEdge(lstVertex.get(1), false);
 				if (eFlow != null)
 				{
-					//System.out.println("Independent Flow " + eFlow.GetLabel() + " : " + eFlow.GetSource().GetLabel() + " -> " + eFlow.GetTarget().GetLabel());
 					eFlow.setIndependent(true);
 					independentEdges.add(eFlow);
 				}
@@ -303,7 +315,7 @@ public class ProgramExecutor {
 			if (eFlow != null)
 			{
 				blnForward = (eFlow.getTarget() == vTgt);		// Direction of independent flow, A -> B = Forward, A <- B = Backward
-				strIndFlowLabel = eFlow.getCost();				// If the flow has an assigned cost, use that instead of the flow label
+				strIndFlowLabel = eFlow.getValue();				// If the flow has an assigned cost, use that instead of the flow label
 				if (strIndFlowLabel.length() == 0){
 					strIndFlowLabel = eFlow.getLabel();
 				}
@@ -325,7 +337,7 @@ public class ProgramExecutor {
 			{
 				vSrc = lstVertices.get(intVertex);
 				vTgt = lstVertices.get((intVertex + 1) % lstVertices.size());
-				
+
 				eFlow = vSrc.findOutEdge(vTgt, false);
 				if (eFlow != null)
 				{
@@ -333,7 +345,6 @@ public class ProgramExecutor {
 					strEquation += ((blnForward == (eFlow.getTarget() == vTgt)) ? ((strEquation.length() == 0) ? "" : " + ") : " - ") + strIndFlowLabel;				
 					eFlow.setEquation(strEquation);
 				}
-				
 			}
 		}
 		pGraph.resetGraph(false);
@@ -366,6 +377,7 @@ public class ProgramExecutor {
 	            	}
 	            }
 			}
+
 		}
 		// save strings containing order of vertices in each loop with key of starting vertex
 		Map<String,String> loopstr=new HashMap<String,String>();
@@ -414,12 +426,15 @@ public class ProgramExecutor {
 		        	 flow.setCondition(c.getType());
 		         }
 			} 
+
+
 			index++;
 		}
 		appendLineToFrame("");
 		for(Edge e : independentEdges) 
 			if(e.getVisible()){
 				if(e.getCondition()!=null && e.getLoopType()!=null){
+
 					appendLineToFrame(e.getLabel()+ ": " + e.getCondition()+" statement in "+e.getLoopType() + " loop");
 				}
 				else if(e.getLoopType()!=null){
@@ -446,7 +461,7 @@ public class ProgramExecutor {
 	}
 	
 	public static void main(String[] args)
-	{				
+	{
 		new UIFrame();
 	}
 }

@@ -15,9 +15,10 @@ public class Edge
 	private int curve = 0;
 	private boolean visible = true;
 	
-	private String equation = ""; 	// set it as string for now
-	private String cost = "";		// set it as string for now 
-	                                // this is the value of e, not time cost
+	private String equation = "";
+	private String value = "";
+	private FlowType flowType = null;
+	
 	private String timecost="";
 	private String looptype=null;
 	private String condition=null;
@@ -39,6 +40,14 @@ public class Edge
 		else timecost="C"+pTarget.getLabel();
 	}
   
+	public FlowType getFlowType()
+	{
+		return flowType;
+	}
+	public void setFlowType(FlowType ft)
+	{
+		flowType = ft;
+	}
     public String getCondition(){
     	return condition;
     }
@@ -83,13 +92,13 @@ public class Edge
 	{
 		color = pColor;
 	}
-	public String getCost()
+	public String getValue()
 	{
-		return cost;
+		return value;
 	}
-	public void setCost(String pCost)
+	public void setValue(String pValue)
 	{
-		cost = pCost;
+		value = pValue;
 	}
 	public String getEquation()
 	{

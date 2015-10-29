@@ -2,7 +2,6 @@ package graph;
 
 import java.util.ArrayList;
 
-
 public class Graph 
 {
 	private ArrayList<Vertex> lstVertex = new ArrayList<Vertex>();
@@ -58,21 +57,23 @@ public class Graph
 	
 	public void deleteEdge(Edge e)
 	{
-		lstEdge.remove(e);						// Remove from graph edge list
+		lstEdge.remove(e);							// Remove from graph edge list
 		e.getTarget().getInEdgeList().remove(e);	// Remove from target's InEdge list
 		e.getSource().getOutEdgeList().remove(e);	// Remove from source's OutEdge list
 	}
 	
 	public void deleteVertex(Vertex v)
 	{
-		lstVertex.remove(v);			// Remove from graph vertex list
+		lstVertex.remove(v);				// Remove from graph vertex list
 		for (Edge e : v.getOutEdgeList())	// Remove all edges leaving v from targets' InEdge list
 		{
 			e.getTarget().getInEdgeList().remove(e);
+			lstEdge.remove(e);
 		}
 		for (Edge e : v.getInEdgeList())	// Remove all edges entering v from sources' OutEdge list
 		{
 			e.getSource().getOutEdgeList().remove(e);
+			lstEdge.remove(e);
 		}
 	}
 	
@@ -147,14 +148,11 @@ public class Graph
 	public void curveEdges()
 	{
 		Vertex vTarget;
-		boolean blnForwardCycle, blnBackwardCycle;
 		resetGraph(false);
 		for (Vertex v : lstVertex)
 		{
 			for (Edge e : v.getOutEdgeList())
 			{
-				blnForwardCycle = false;
-				blnBackwardCycle = false;
 				int angle=0;		
 				e.setVisited(true);
 				vTarget = e.getTarget();
@@ -163,40 +161,34 @@ public class Graph
 					if (!e2.getVisited() && e2.getTarget() == vTarget)
 					{
 						e.setVisited(true);
-						blnForwardCycle = true;
 						e.setCurve(1);
 						e2.setCurve((int) Math.pow(-1, ++angle) * angle);
 					}
-				}/*
-				for (Edge e2 : v.GetInEdge())
-				{
-					if (!e2.GetVisited() && e2.GetSource() == vTarget)
-					{
-						e.SetVisited(true);
-						if (blnForwardCycle)	// 2 out, 1 in
-						{
-							e2.SetCurve(2);
-						}
-						else // 1 in
-						{
-							if (blnBackwardCycle)	// 1 in, 2 out
-							{
-								e2.SetCurve(2);
-							}
-							else // 1 in, 1 out
-							{
-								blnBackwardCycle = true;
-								e2.SetCurve(-1);
-							}
-							e.SetCurve(-1);
-						}
-					}
-				}*/
+				}
 			}
 		}
 		for (Edge e : lstEdge)
 		{
 			e.setVisited(false);
+		}
+	}
+	
+	public void PrintGraph(boolean bVertex, boolean bEdge)
+	{
+		System.out.println();
+		if (bVertex)
+		{
+			for (Vertex v : lstVertex)
+			{
+				System.out.println("Vertex: " + v.getLabel() + " " + v.getType());
+			}
+		}
+		if (bEdge)
+		{
+			for (Edge e : lstEdge)
+			{
+				System.out.println("Edge " + e.getLabel() + " : " + e.getSource().getLabel() + " -> " + e.getTarget().getLabel() + " " + (e.getFlowType() != null ? e.getFlowType().toString() : ""));
+			}
 		}
 	}
 }

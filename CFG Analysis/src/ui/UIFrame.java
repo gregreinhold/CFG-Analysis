@@ -63,7 +63,7 @@ public class UIFrame extends JFrame {
 	
 	// initializes the JPanel asking the user to select a Java code file
 	private void initializeCodePanel(JPanel leftPanel){
-		_codePanel = new SelectFilePanel("Select file containing Java code to be analyzed:", FileType.Java, this);
+		_codePanel = new SelectFilePanel("Select file containing Java code to be analyzed:", FileType.Code, this);
 		leftPanel.add(_codePanel, "cell 0 0,grow");
 	}
 	
@@ -123,7 +123,7 @@ public class UIFrame extends JFrame {
 	// Will update whether or not the Go Button should be Enabled based on
 	// if all of the SelectPanels have a file selected
 	public void updateGoButtonEnabled(){
-		_btnGo.setEnabled(_codePanel.hasFileSelected()&&_cfgPanel.hasFileSelected()&&_saveFilePanel.hasFileSelected());
+		_btnGo.setEnabled(_codePanel.hasFileSelected()&&(_cfgPanel.hasFileSelected()||_codePanel.isSelectedFileTxt())&&_saveFilePanel.hasFileSelected());
 	}
 	
 	// Add another line containing string to the right panel output

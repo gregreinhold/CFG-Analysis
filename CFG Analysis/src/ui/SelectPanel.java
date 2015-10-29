@@ -50,6 +50,11 @@ public abstract class SelectPanel extends JPanel{
 		addButtonActionListener(btnOpenButton);
 	}
 	
+	public boolean isSelectedFileTxt()
+	{
+		return hasFileSelected() && _selectedFile.getName().endsWith("txt");
+	}
+
 	// returns true if the file has been selected and loaded successfully
 	public Boolean hasFileSelected(){
 		return !_lblFileSelected.getText().contains(UIConstants.OPEN_COMMAND_FAILED);
@@ -63,6 +68,6 @@ public abstract class SelectPanel extends JPanel{
 
 	// contains enums of the different File Types that a user can load
 	public enum FileType{
-		GraphML, Java;
+		GraphML, Code;
 	}
 }

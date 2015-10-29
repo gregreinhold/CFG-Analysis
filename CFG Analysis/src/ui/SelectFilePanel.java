@@ -6,7 +6,6 @@ import java.io.File;
 
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
-import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 public class SelectFilePanel extends SelectPanel {
@@ -33,16 +32,15 @@ public class SelectFilePanel extends SelectPanel {
 	            try {
 	
 	            	JFileChooser jfc = new JFileChooser();
-	            	FileFilter filter = null;
 	            	switch(_fileType){
 	            	case GraphML:
-	            		filter = new FileNameExtensionFilter("GraphML File","graphml");
+		            	jfc.addChoosableFileFilter(new FileNameExtensionFilter("GraphML File","graphml"));
 	            		break;
-	            	case Java:
-	            		filter = new FileNameExtensionFilter("Java file","java");
+	            	case Code:
+		            	jfc.addChoosableFileFilter(new FileNameExtensionFilter("Java file","java"));
+		            	jfc.addChoosableFileFilter(new FileNameExtensionFilter("Text file","txt"));
 	            		break;
-	            	}         	
-	            	jfc.setFileFilter(filter);
+	            	}
 	            	jfc.setAcceptAllFileFilterUsed(false);	// remove "All Files" option
 	            	jfc.showOpenDialog(null);
 	                jfc.setVisible(true);

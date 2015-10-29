@@ -5,7 +5,6 @@ import static graph.GraphConstants.*;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
-import java.awt.event.MouseEvent;
 import java.awt.geom.GeneralPath;
 
 import javax.swing.JPanel;
@@ -24,7 +23,6 @@ public class DrawingPanel extends JPanel
        this.setBackground(java.awt.Color.white);
        this.setPreferredSize(new java.awt.Dimension(500, 500));
        this.setSize(new java.awt.Dimension(500, 500));
-       addMouseListener(new PanelMouseListener());
        graph = pGraph;
     }
     
@@ -77,43 +75,12 @@ public class DrawingPanel extends JPanel
        	}
     }
     
-    // Need to somehow merge this into the curve function so we can get the solid arrow for curves
-    // I copied this from the web and have no idea how this works
-    private void drawArrowLine(Graphics g, int x1, int y1, int x2, int y2, int d, int h)
-    {
-        int dx = x2 - x1, dy = y2 - y1;
-        double D = Math.sqrt(dx*dx + dy*dy);
-        double xm = D - d, xn = xm, ym = h, yn = -h, x;
-        double sin = dy/D, cos = dx/D;
-
-        x = xm*cos - ym*sin + x1;
-        ym = xm*sin + ym*cos + y1;
-        xm = x;
-
-        x = xn*cos - yn*sin + x1;
-        yn = xn*sin + yn*cos + y1;
-        xn = x;
-
-        int[] xpoints = {x2, (int) xm, (int) xn};
-        int[] ypoints = {y2, (int) ym, (int) yn};
-
-        g.drawLine(x1, y1, x2, y2);
-        g.fillPolygon(xpoints, ypoints, 3);
-     }
-    
     public void DrawCurve(Graphics2D g, int xS, int yS, int xT, int yT, double pAngle, int pCurve, String pLabel)
     {
        	int xM, yM;
-       	//Path2D.Double p;
        	
        	xM = (int) ((xS + xT)/2 + pCurve * 50 * Math.sin(pAngle));
        	yM = (int) ((yS + yT)/2 - pCurve * 50 * Math.cos(pAngle));
-       	
-       	/*p = new Path2D.Double();
-       	p.moveTo(xS, yS);
-       	p.curveTo(xS, yS, xM, yM, xT, yT);
-       	g.draw(p);
-       	*/
 
        	GeneralPath path = new GeneralPath();
 		float arrSize = 7; // Size of the arrow segments
@@ -132,12 +99,4 @@ public class DrawingPanel extends JPanel
 		path.lineTo(xT - (ey + ex)*adjSize, yT + (ex - ey)*adjSize);
 		g.draw(path);
     }
-    
-    private class PanelMouseListener extends javax.swing.event.MouseInputAdapter
-    {
-         public void mouseClicked(MouseEvent e) 
-         {
-        	 //System.out.println(e.getX() + "," + e.getY());        	 
-         }
-     }
 }
