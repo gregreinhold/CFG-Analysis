@@ -1,5 +1,5 @@
 package graph;
-import static graph.Constant.*;
+import static graph.GraphConstants.*;
 
 import java.awt.Color;
 
@@ -17,6 +17,7 @@ public class Edge
 	
 	private String equation = "";
 	private String value = "";
+	private FlowType flowType = null;
 	                                
 	private String timecost="";
 	private String looptype=null;
@@ -32,86 +33,94 @@ public class Edge
 	
     public void initTimecost(Vertex pSource, Vertex pTarget){
     	if(timecost.equals(""))
-		if(pTarget.GetLabel().equals("EXIT") || pTarget.GetLabel().equals("START")) timecost="";
-		else if(pSource.GetLabel().equals("START")) timecost="C"+pTarget.GetLabel();
+		if(pTarget.getLabel().equals("EXIT") || pTarget.getLabel().equals("START")) timecost="";
+		else if(pSource.getLabel().equals("START")) timecost="C"+pTarget.getLabel();
     	// use line# to determine the order of instruction
-		else if(Integer.parseInt(pTarget.GetLabel())<Integer.parseInt(pSource.GetLabel())) timecost="";
-		else timecost="C"+pTarget.GetLabel();
+		else if(Integer.parseInt(pTarget.getLabel())<Integer.parseInt(pSource.getLabel())) timecost="";
+		else timecost="C"+pTarget.getLabel();
 	}
-  
-    public String GetCondition(){
+
+	public FlowType getFlowType()
+	{
+		return flowType;
+	}
+	public void setFlowType(FlowType ft)
+	{
+		flowType = ft;
+	}
+    public String getCondition(){
     	return condition;
     }
-    public void SetCondition(String condition){
+    public void setCondition(String condition){
     	this.condition=condition;
     }
-	public String GetLooptype(){
+	public String getLooptype(){
 		return looptype;
 	}
-	public void SetLooptype(String looptype){
+	public void setLooptype(String looptype){
 		this.looptype=looptype;
 	}
-	public String GetTimecost(){
+	public String getTimecost(){
 		return timecost;
 	}
 	
-	public void SetTimecost(String timecost){
+	public void setTimecost(String timecost){
 		this.timecost=timecost;
 	}
 
-	public boolean GetVisible()
+	public boolean getVisible()
 	{
 		return visible;
 	}
-	public void SetVisible(boolean pVisible)
+	public void setVisible(boolean pVisible)
 	{
 		visible = pVisible;
 	}
-	public int GetCurve()
+	public int getCurve()
 	{
 		return curve;
 	}
-	public void SetCurve(int pCurve)
+	public void setCurve(int pCurve)
 	{
 		curve = pCurve;
 	}
-	public Color GetColor()
+	public Color getColor()
 	{
 		return color;
 	}
-	public void SetColor(Color pColor)
+	public void setColor(Color pColor)
 	{
 		color = pColor;
 	}
-	public String GetValue()
+	public String getValue()
 	{
 		return value;
 	}
-	public void SetValue(String pValue)
+	public void setValue(String pValue)
 	{
 		value = pValue;
 	}
-	public String GetEquation()
+	public String getEquation()
 	{
 		return equation;
 	}
-	public void SetEquation(String pEquation)
+	public void setEquation(String pEquation)
 	{
 		equation = pEquation;
 	}
-	public String GetLabel()
+	public String getLabel()
 	{
 		return label;
 	}
-	public void SetLabel(String pLabel)
+	public void setLabel(String pLabel)
 	{
 		label = pLabel;
 	}
-	public boolean GetIndependent()
+	public boolean getIndependent()
 	{
 		return independent;
 	}
-	public void SetIndependent(boolean pIndependent)
+	public void setIndependent(boolean pIndependent)
 	{
 		independent = pIndependent;
 		if (pIndependent)
@@ -119,21 +128,21 @@ public class Edge
 		else
 			color = EDGECOLOR;
 	}
-	public boolean GetVisited()
+	public boolean getVisited()
 	{
 		return visited;
 	}
-	public void SetVisited(boolean pVisited)
+	public void setVisited(boolean pVisited)
 	{
 		visited = pVisited;
 	}
 	
-	public Vertex GetSource()
+	public Vertex getSource()
 	{
 		return source;
 	}
 	
-	public Vertex GetTarget()
+	public Vertex getTarget()
 	{
 		return target;
 	}

@@ -2,7 +2,7 @@ package graph;
 
 import java.awt.Color;
 import java.util.ArrayList;
-import static graph.Constant.*;
+import static graph.GraphConstants.*;
 
 public class Vertex 
 {
@@ -12,7 +12,7 @@ public class Vertex
 	private String expr;
 	private int forUpperBound;
 	private int forLowerBound;
-	private String looptype = null;
+	private String looptype=null;
 	private boolean visited;
 	
 	private int x;
@@ -36,77 +36,78 @@ public class Vertex
 		x = pX;
 		y = pY;
 	}
+
 	
-	public int GetUpperBound()
+	public int getUpperBound()
 	{
 		return forUpperBound;
 	}
-	public void SetUpperBound(int value)
+	public void setUpperBound(int value)
 	{
 		forUpperBound = value;
 	}
-	public int GetLowerBound()
+	public int getLowerBound()
 	{
 		return forLowerBound;
 	}
-	public void SetLowerBound(int value)
+	public void setLowerBound(int value)
 	{
 		forLowerBound = value;
 	}
-	public String GetExpr()
+	public String getExpr()
 	{
 		return expr;
 	}
-	public void SetExpr(String s)
+	public void setExpr(String s)
 	{
 		expr = s;
 	}
-	public String GetLooptype(){
+	public String getLooptype(){
 		return looptype;
 	}
-	public void SetLooptype(String looptype){
+	public void setLooptype(String looptype){
 		this.looptype=looptype;
 	}
-	public void SetType(String type){
+	public void setType(String type){
 		this.type=type;
 	}
-	public String GetType()
+	public String getType()
 	{
 		return type;	// type of vertex (start, end, decision, instruction)
 	}
-	public String GetName()
+	public String getName()
 	{
 		return name;
 	}
-	public String GetLabel()
+	public String getLabel()
 	{
 		return label;
 	}
-	public boolean GetVisited()
+	public boolean getVisited()
 	{
 		return visited;
 	}
-	public void SetVisited(boolean pVisited)
+	public void setVisited(boolean pVisited)
 	{
 		visited = pVisited;
 	}
-	public Vertex GetPrevVertex()
+	public Vertex getPrevVertex()
 	{
 		return prevVertex;
 	}
-	public void SetPrevVertex(Vertex pPrevVertex)
+	public void setPrevVertex(Vertex pPrevVertex)
 	{
 		prevVertex = pPrevVertex;
 	}
-	public ArrayList<Edge> GetInEdge()
+	public ArrayList<Edge> getInEdge()
 	{
 		return lstInEdge;
 	}
-	public ArrayList<Edge> GetOutEdge()
+	public ArrayList<Edge> getOutEdge()
 	{
 		return lstOutEdge;
 	}
-	public ArrayList<Edge> GetEdge()
+	public ArrayList<Edge> getEdge()
 	{
 		ArrayList<Edge> lstReturn = new ArrayList<Edge>();
 		lstReturn.addAll(lstOutEdge);
@@ -115,23 +116,23 @@ public class Vertex
 	}
 	
 	// Drawings (should probably put this in a parent class or private class)
-	public Color GetColor()
+	public Color getColor()
 	{
 		return color;
 	}
-	public int GetX()
+	public int getX()
 	{
 		return x;
 	}
-	public int GetY()
+	public int getY()
 	{
 		return y;
 	}
-	public boolean GetVisible()
+	public boolean getVisible()
 	{
 		return visible;
 	}
-	public void SetVisible(boolean pVisible)
+	public void setVisible(boolean pVisible)
 	{
 		visible = pVisible;
 	}
@@ -141,7 +142,7 @@ public class Vertex
 	{
 		for (Edge e : lstOutEdge)
 		{
-			if (e.GetTarget() == pTarget && e.GetIndependent() == pIndependent)
+			if (e.getTarget() == pTarget && e.getIndependent() == pIndependent)
 			{
 				return e;
 			}
@@ -152,7 +153,7 @@ public class Vertex
 	{
 		for (Edge e : lstInEdge)
 		{
-			if (e.GetSource() == pSource && e.GetIndependent() == pIndependent)
+			if (e.getSource() == pSource && e.getIndependent() == pIndependent)
 			{
 				return e;
 			}
@@ -163,14 +164,14 @@ public class Vertex
 	{
 		for (Edge e : lstOutEdge)
 		{
-			if (e.GetTarget() == pVertex && e.GetIndependent() == pIndependent)
+			if (e.getTarget() == pVertex && e.getIndependent() == pIndependent)
 			{
 				return e;
 			}
 		}
 		for (Edge e : lstInEdge)
 		{
-			if (e.GetSource() == pVertex && e.GetIndependent() == pIndependent)
+			if (e.getSource() == pVertex && e.getIndependent() == pIndependent)
 			{
 				return e;
 			}
@@ -179,13 +180,16 @@ public class Vertex
 	}
 	public Edge FindDiffIndepEdge(Vertex pVertex)
 	{
-		ArrayList<Edge> edges = new ArrayList<Edge>();
 		for (Edge e : lstOutEdge)
-			if (e.GetTarget() == pVertex && e.GetIndependent() == true && e.GetVisited() ==false)
-			{e.SetVisited(true); return e;}
+			if (e.getTarget() == pVertex && e.getIndependent() == true && e.getVisited() ==false)
+			{e.setVisited(true); return e;}
 		for (Edge e : lstInEdge)
-			if (e.GetSource() == pVertex && e.GetIndependent() == true && e.GetVisited() ==false)
-			{e.SetVisited(true); return e;}
+			if (e.getSource() == pVertex && e.getIndependent() == true && e.getVisited() ==false)
+			{e.setVisited(true); return e;}
 		return null;
+	}
+	
+	public Vertex copyVertex(){
+		return new Vertex(name, label, type, x, y);
 	}
 }

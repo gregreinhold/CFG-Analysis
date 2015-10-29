@@ -3,14 +3,15 @@ package graph;
 import graph.Edge;
 import graph.Graph;
 import graph.Vertex;
+import static graph.GraphConstants.*;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.LinkedList;
 
-import static graph.Constant.*;
 
 public class GraphParser
 {
@@ -106,9 +107,10 @@ public class GraphParser
 	
 	// Very limited syntax checking
 	// Returns graph
-	public Graph Parse(String sPath)
+	public Graph Parse(File codeFile)
 	{
 		NodeType nodeType = null;
+		FlowType flowType = null;
 		String sAssignVar, sAssignVal;
 		String sUpperBound, sLowerBound;
 		String sExpr, sLine;
@@ -116,6 +118,7 @@ public class GraphParser
 		Graph gGraph = new Graph();
 		Vertex vNewVertex = null;
 		Vertex vLastVertex = null;
+		Edge eNewEdge = null;
 		
 		// Lists used for syntax checking
 		LinkedList<Keyword> lstKeyword = new LinkedList<Keyword>();			// stack
@@ -138,7 +141,7 @@ public class GraphParser
 			vLastVertex = new Vertex("START", "START", NodeType.START.toString(), x, y);
 			gGraph.AddVertex(vLastVertex);
 
-			br = new BufferedReader(new FileReader(sPath));
+			br = new BufferedReader(new FileReader(codeFile));
 			while((sLine = br.readLine()) != null)
 			{
 				sExpr = "";
@@ -146,6 +149,7 @@ public class GraphParser
 				sAssignVal = "";
 				sUpperBound = "";
 				sLowerBound = "";
+				flowType = getFlowType(lstKeyword);
 				nodeType = NodeType.INSTRUCTION;
 				lstLineKeyword.clear();
 				lstExpectedToken.clear();
@@ -162,37 +166,38 @@ public class GraphParser
 					{
 						throw new Exception("[Line" + iLine + "] End of statement expected.");
 					}
+					
 					if (token.type == TokenType.KEYWORD)
 					{
 						if (token.value.equals(Keyword.IF.Value()))
 						{
 							if (i != 0)
 								throw new Exception("[Line" + iLine + "] IF keyword is required to be first in the line.");
-							lstKeyword.add(Keyword.IF);
 							nodeType = NodeType.IF_BRANCH;
 							lstExpectedToken.clear();
 							lstExpectedToken.add(TokenType.VARIABLE);
 							lstLineKeyword.add(Keyword.IF);
+							lstKeyword.add(Keyword.IF);
 						}
 						else if (token.value.equals(Keyword.FOR.Value()))
 						{
 							if (i != 0)
 								throw new Exception("[Line" + iLine + "] FOR keyword is required to be first in the line.");
-							lstKeyword.add(Keyword.FOR);
 							nodeType = NodeType.FOR_BRANCH;
 							lstExpectedToken.clear();
 							lstExpectedToken.add(TokenType.VARIABLE);
 							lstLineKeyword.add(Keyword.FOR);
+							lstKeyword.add(Keyword.FOR);
 						}
 						else if (token.value.equals(Keyword.WHILE.Value()))
 						{
 							if (i != 0)
 								throw new Exception("[Line" + iLine + "] WHILE keyword is required to be first in the line.");
-							lstKeyword.add(Keyword.WHILE);
 							nodeType = NodeType.WHILE_BRANCH;
 							lstExpectedToken.clear();
 							lstExpectedToken.add(TokenType.VARIABLE);
 							lstLineKeyword.add(Keyword.WHILE);
+							lstKeyword.add(Keyword.WHILE);
 						}
 						else if (token.value.equals(Keyword.ENDIF.Value()))
 						{
@@ -329,61 +334,71 @@ public class GraphParser
 					{
 						// Drawings for debug
 						x += VDISTANCE / 2;
-						y = lstBranchVertex.peekLast().GetY();
+						y = lstBranchVertex.peekLast().getY();
 						
 						vNewVertex = new Vertex(String.valueOf(iLine), String.valueOf(iLine), nodeType.toString(), x, y);
-						vNewVertex.SetExpr(sExpr);
-						lstKeyword.removeLast();
-						gGraph.AddEdge(new Edge(vLastVertex, vNewVertex, "e" + iEdge));							// Last vertex to merge vertex
-						gGraph.AddEdge(new Edge(lstBranchVertex.removeLast(), vNewVertex, "e" + (iEdge + 1)));	// If branch vertex to merge vertex
+						vNewVertex.setExpr(sExpr);
 						gGraph.AddVertex(vNewVertex);
+						
+						eNewEdge = new Edge(vLastVertex, vNewVertex, "e" + iEdge);
+						eNewEdge.setFlowType(flowType);
+						gGraph.AddEdge(eNewEdge);	// Last vertex to merge vertex
+						eNewEdge = new Edge(lstBranchVertex.removeLast(), vNewVertex, "e" + (iEdge + 1));
+						eNewEdge.setFlowType(flowType);
+						gGraph.AddEdge(eNewEdge);	// If branch vertex to merge vertex
+						
+						lstKeyword.removeLast();
 						iEdge += 2;
 					}
 					else if (nodeType == NodeType.LOOP_MERGE)
 					{
-						lstKeyword.removeLast();
 						vNewVertex = lstBranchVertex.peekLast();		// Back to where the loop starts
-						gGraph.AddEdge(new Edge(vLastVertex, lstBranchVertex.removeLast(), "e" + iEdge));
+						eNewEdge = new Edge(vLastVertex, lstBranchVertex.removeLast(), "e" + iEdge);
+						eNewEdge.setFlowType(flowType);
+						gGraph.AddEdge(eNewEdge);
+						lstKeyword.removeLast();
 						iEdge++;
 					}
 					else 
 					{
 						// Drawings for debugging, not used for actual project deliverable
-						if (vLastVertex.GetType().equals(NodeType.IF_BRANCH.toString()))
+						if (vLastVertex.getType().equals(NodeType.IF_BRANCH.toString()))
 						{
-							x = vLastVertex.GetX() + Constant.VDISTANCE / 2;
-							y = vLastVertex.GetY() + Constant.VDISTANCE / 2;
+							x = vLastVertex.getX() + VDISTANCE / 2;
+							y = vLastVertex.getY() + VDISTANCE / 2;
 						}
-						else if ((vLastVertex.GetType().equals(NodeType.FOR_BRANCH.toString()) || vLastVertex.GetType().equals(NodeType.WHILE_BRANCH.toString()))	// This needs to be simplified
-								&& lstBranchVertex.size() > 0 && (lstBranchVertex.peekLast().GetType().equals(NodeType.FOR_BRANCH.toString()) || 					// Basically if the last vertex is a loop, then the new vertex is within a loop, place the new vertex under the loop
-																  lstBranchVertex.peekLast().GetType().equals(NodeType.WHILE_BRANCH.toString())))					// If the last vertex is a loop but has already exited, don't place it under
-							y = vLastVertex.GetY() + Constant.VDISTANCE;
+						else if ((vLastVertex.getType().equals(NodeType.FOR_BRANCH.toString()) || vLastVertex.getType().equals(NodeType.WHILE_BRANCH.toString()))	// This needs to be simplified
+								&& lstBranchVertex.size() > 0 && (lstBranchVertex.peekLast().getType().equals(NodeType.FOR_BRANCH.toString()) || 					// Basically if the last vertex is a loop, then the new vertex is within a loop, place the new vertex under the loop
+																  lstBranchVertex.peekLast().getType().equals(NodeType.WHILE_BRANCH.toString())))					// If the last vertex is a loop but has already exited, don't place it under
+							y = vLastVertex.getY() + VDISTANCE;
 						else 
 						{
-							x = vLastVertex.GetX() + Constant.VDISTANCE;
-							y = vLastVertex.GetY();
+							x = vLastVertex.getX() + VDISTANCE;
+							y = vLastVertex.getY();
 						}
 						// END Drawing
 						
 						vNewVertex = new Vertex(String.valueOf(iLine), String.valueOf(iLine), nodeType.toString(), x, y);
-						vNewVertex.SetExpr(sExpr);
+						vNewVertex.setExpr(sExpr);
 						if (nodeType == NodeType.IF_BRANCH || nodeType == NodeType.WHILE_BRANCH)
 						{
 							lstBranchVertex.add(vNewVertex);
 						}
 						else if (nodeType == NodeType.FOR_BRANCH)
 						{
-							vNewVertex.SetLowerBound(EvalExpr(sLowerBound));
-							vNewVertex.SetUpperBound(EvalExpr(sUpperBound));
+							vNewVertex.setLowerBound(EvalExpr(sLowerBound));
+							vNewVertex.setUpperBound(EvalExpr(sUpperBound));
 							lstBranchVertex.add(vNewVertex);
 						}
 						
+						eNewEdge = new Edge(vLastVertex, vNewVertex, "e" + iEdge);
+						eNewEdge.setFlowType(flowType);
 						gGraph.AddVertex(vNewVertex);
-						gGraph.AddEdge(new Edge(vLastVertex, vNewVertex, "e" + iEdge));
+						gGraph.AddEdge(eNewEdge);
 						iEdge++;
 					}
 					vLastVertex = vNewVertex;
-					System.out.println(PadRight(vNewVertex.GetLabel() + ")", ' ', 4) + PadRight(sExpr.trim(), ' ', 30) + "[" + nodeType.toString() + "] " + ((nodeType == NodeType.FOR_BRANCH) ? (" For [" + vNewVertex.GetLowerBound() + ", " + vNewVertex.GetUpperBound() + "]") : ""));
+					System.out.println(PadRight(vNewVertex.getLabel() + ")", ' ', 4) + PadRight(sExpr.trim(), ' ', 30) + "[" + nodeType.toString() + "] " + ((nodeType == NodeType.FOR_BRANCH) ? (" For [" + vNewVertex.getLowerBound() + ", " + vNewVertex.getUpperBound() + "]") : ""));
 				}
 				iLine++;
 			}
@@ -399,13 +414,18 @@ public class GraphParser
 				throw new Exception(sLine.trim());
 			}
 			
-			vNewVertex = new Vertex("EXIT", "EXIT", NodeType.END.toString(), vLastVertex.GetX() + VDISTANCE, vLastVertex.GetY());
+			vNewVertex = new Vertex("EXIT", "EXIT", NodeType.END.toString(), vLastVertex.getX() + VDISTANCE, vLastVertex.getY());
 			gGraph.AddVertex(vNewVertex);
 			gGraph.AddEdge(new Edge(vLastVertex, vNewVertex, "e" + iEdge));
 			System.out.println("*** END PARSING ***");
 			
 			// DEBUG PRINT
 			PrintVariables(mVariable);
+			for (Edge e : gGraph.getEdgeList())
+			{
+				System.out.println(e.getLabel() + " " + (e.getFlowType() != null ? e.getFlowType().toString() : ""));
+			}
+			System.out.println();
 		}
 		catch (Exception ex)
 		{
@@ -420,23 +440,6 @@ public class GraphParser
 		}
 		
 		return gGraph;
-	}
-	
-	private int FindOperatorIndex(String s, char cOperator)
-	{
-		int iOpenParen = 0;
-		char c;
-		for (int i = 0; i < s.length(); i++)
-		{
-			c = s.charAt(i);
-			if (c == '(')
-				iOpenParen++;
-			else if (c == ')')
-				iOpenParen--;
-			else if (iOpenParen == 0 && c == cOperator)
-				return i;
-		}
-		return -1;
 	}
 	
 	// Supports add, subtract, multiply, divide, power, n choose k
@@ -571,16 +574,16 @@ public class GraphParser
 
 	// This gets the type of flow of a certain edge
 	// Only a limited set of combination is allowed
-	private FlowType GetFlowType(LinkedList<Keyword> lstKW)	
+	private FlowType getFlowType(LinkedList<Keyword> lstKW)	
 	{
 		FlowType et = null;
 		Keyword kw;
-		for (int i = 0; i < lstKW.size(); i++)
+		for (int i = lstKW.size() - 1; i >= 0; i--)
 		{
 			kw = lstKW.get(i);
 			if (et == null)
 			{
-				if (kw == Keyword.IF)
+				if (kw == Keyword.IF)	// The edge leading to if branch does not count as inside the if
 					et = FlowType.IF;
 				else if (kw == Keyword.FOR)
 					et = FlowType.FOR;
