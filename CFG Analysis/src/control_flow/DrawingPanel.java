@@ -1,11 +1,17 @@
 package control_flow;
 
 import static graph.GraphConstants.*;
+
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Point;
+import java.awt.event.MouseEvent;
+import java.awt.geom.GeneralPath;
+
+import javax.swing.JPanel;
+
 import graph.*;
-import java.awt.*;
-import javax.swing.*;
-import java.awt.event.*;
-import java.awt.geom.*;
+
 
 @SuppressWarnings("serial")
 public class DrawingPanel extends JPanel
@@ -35,11 +41,11 @@ public class DrawingPanel extends JPanel
        	
        	for (Vertex v : graph.getVerticesList())
        	{
-       		if (v.GetVisible())		// In case we want to hide a vertex and without having to delete it
+       		if (v.getVisible())		// In case we want to hide a vertex and without having to delete it
        		{
-	       		g2.setColor(v.GetColor());
-	       		g2.fillOval(v.GetX(), v.GetY(), 10, 10);
-	       		g2.drawString(v.GetLabel(), v.GetX() + 13, v.GetY() + 10);
+	       		g2.setColor(v.getColor());
+	       		g2.fillOval(v.getX(), v.getY(), 10, 10);
+	       		g2.drawString(v.getLabel(), v.getX() + 13, v.getY() + 10);
        		}
        	}
        	for (Edge e : graph.getEdgeList())
@@ -47,8 +53,8 @@ public class DrawingPanel extends JPanel
        		if (e.getVisible())		// In case we want to hide an edge (ie. virtual edge from END -> START)
        		{
 	       		g2.setColor(e.getColor());
-	           	pCenter1 = new Point (e.getTarget().GetX() + VERTEXSIZE / 2, e.getTarget().GetY() + VERTEXSIZE / 2);
-	           	pCenter2 = new Point (e.getSource().GetX() + VERTEXSIZE / 2, e.getSource().GetY() + VERTEXSIZE / 2);
+	           	pCenter1 = new Point (e.getTarget().getX() + VERTEXSIZE / 2, e.getTarget().getY() + VERTEXSIZE / 2);
+	           	pCenter2 = new Point (e.getSource().getX() + VERTEXSIZE / 2, e.getSource().getY() + VERTEXSIZE / 2);
 	
 	            dblAngle = Math.atan2(pCenter1.y - pCenter2.y, pCenter1.x - pCenter2.x);
 	            pEnd = new Point(pCenter1.x + (int)(GraphConstants.VERTEXSIZE / 2 * Math.cos(dblAngle + Math.PI)), pCenter1.y + (int)(VERTEXSIZE / 2 * Math.sin(dblAngle + Math.PI)));

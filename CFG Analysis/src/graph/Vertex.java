@@ -34,53 +34,53 @@ public class Vertex
 		y = pY;
 	}
 	
-	public String GetLooptype(){
+	public String getLooptype(){
 		return looptype;
 	}
 
-	public void SetLooptype(String looptype){
+	public void setLooptype(String looptype){
 		this.looptype=looptype;
 	}
-	public void SetType(String type){
+	public void setType(String type){
 		this.type=type;
 	}
-	public String GetType()
+	public String getType()
 	{
 		return type;	// type of vertex (start, end, decision, instruction)
 	}
-	public String GetName()
+	public String getName()
 	{
 		return name;
 	}
-	public String GetLabel()
+	public String getLabel()
 	{
 		return label;
 	}
-	public boolean GetVisited()
+	public boolean getVisited()
 	{
 		return visited;
 	}
-	public void SetVisited(boolean pVisited)
+	public void setVisited(boolean pVisited)
 	{
 		visited = pVisited;
 	}
-	public Vertex GetPrevVertex()
+	public Vertex getPrevVertex()
 	{
 		return prevVertex;
 	}
-	public void SetPrevVertex(Vertex pPrevVertex)
+	public void setPrevVertex(Vertex pPrevVertex)
 	{
 		prevVertex = pPrevVertex;
 	}
-	public ArrayList<Edge> GetInEdge()
+	public ArrayList<Edge> getInEdgeList()
 	{
 		return lstInEdge;
 	}
-	public ArrayList<Edge> GetOutEdge()
+	public ArrayList<Edge> getOutEdgeList()
 	{
 		return lstOutEdge;
 	}
-	public ArrayList<Edge> GetEdge()
+	public ArrayList<Edge> getEdgeList()
 	{
 		ArrayList<Edge> lstReturn = new ArrayList<Edge>();
 		lstReturn.addAll(lstOutEdge);
@@ -89,29 +89,29 @@ public class Vertex
 	}
 	
 	// Drawings (should probably put this in a parent class or private class)
-	public Color GetColor()
+	public Color getColor()
 	{
 		return color;
 	}
-	public int GetX()
+	public int getX()
 	{
 		return x;
 	}
-	public int GetY()
+	public int getY()
 	{
 		return y;
 	}
-	public boolean GetVisible()
+	public boolean getVisible()
 	{
 		return visible;
 	}
-	public void SetVisible(boolean pVisible)
+	public void setVisible(boolean pVisible)
 	{
 		visible = pVisible;
 	}
 	// END Drawings
 	
-	public Edge FindOutEdge(Vertex pTarget, boolean pIndependent)
+	public Edge findOutEdge(Vertex pTarget, boolean pIndependent)
 	{
 		for (Edge e : lstOutEdge)
 		{
@@ -122,7 +122,7 @@ public class Vertex
 		}
 		return null;
 	}
-	public Edge FindInEdge(Vertex pSource, boolean pIndependent)
+	public Edge findInEdge(Vertex pSource, boolean pIndependent)
 	{
 		for (Edge e : lstInEdge)
 		{
@@ -133,7 +133,7 @@ public class Vertex
 		}
 		return null;
 	}
-	public Edge FindEdge(Vertex pVertex, boolean pIndependent)
+	public Edge findEdge(Vertex pVertex, boolean pIndependent)
 	{
 		for (Edge e : lstOutEdge)
 		{
@@ -151,7 +151,9 @@ public class Vertex
 		}
 		return null;
 	}
-	public Edge FindDiffIndepEdge(Vertex pVertex)
+	
+	
+	public Edge findDiffIndepEdge(Vertex pVertex)
 	{
 		for (Edge e : lstOutEdge)
 			if (e.getTarget() == pVertex && e.getIndependent() == true && e.getVisited() ==false)
@@ -160,9 +162,5 @@ public class Vertex
 			if (e.getSource() == pVertex && e.getIndependent() == true && e.getVisited() ==false)
 			{e.setVisited(true); return e;}
 		return null;
-	}
-	
-	public Vertex copyVertex(){
-		return new Vertex(name, label, type, x, y);
 	}
 }

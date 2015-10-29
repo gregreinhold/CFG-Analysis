@@ -32,11 +32,11 @@ public class Edge
 	
     public void initTimecost(Vertex pSource, Vertex pTarget){
     	if(timecost.equals(""))
-		if(pTarget.GetLabel().equals("EXIT") || pTarget.GetLabel().equals("START")) timecost="";
-		else if(pSource.GetLabel().equals("START")) timecost="C"+pTarget.GetLabel();
+		if(pTarget.getLabel().equals("EXIT") || pTarget.getLabel().equals("START")) timecost="";
+		else if(pSource.getLabel().equals("START")) timecost="C"+pTarget.getLabel();
     	// use line# to determine the order of instruction
-		else if(Integer.parseInt(pTarget.GetLabel())<Integer.parseInt(pSource.GetLabel())) timecost="";
-		else timecost="C"+pTarget.GetLabel();
+		else if(Integer.parseInt(pTarget.getLabel())<Integer.parseInt(pSource.getLabel())) timecost="";
+		else timecost="C"+pTarget.getLabel();
 	}
   
     public String getCondition(){
@@ -45,7 +45,7 @@ public class Edge
     public void setCondition(String condition){
     	this.condition=condition;
     }
-	public String getLooptype(){
+	public String getLoopType(){
 		return looptype;
 	}
 	public void setLooptype(String looptype){
