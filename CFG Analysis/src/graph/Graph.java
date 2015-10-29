@@ -1,9 +1,5 @@
 package graph;
 
-<<<<<<< HEAD
-=======
-import static graph.GraphConstants.*;
->>>>>>> refs/remotes/origin/master
 import java.util.*;
 
 public class Graph 
@@ -27,13 +23,8 @@ public class Graph
 	public void AddEdge(Edge pNewEdge)
 	{
 		lstEdge.add(pNewEdge);
-<<<<<<< HEAD
 		pNewEdge.getSource().getOutEdge().add(pNewEdge);
 		pNewEdge.getTarget().getInEdge().add(pNewEdge);
-=======
-		pNewEdge.getSource().GetOutEdge().add(pNewEdge);
-		pNewEdge.getTarget().GetInEdge().add(pNewEdge);
->>>>>>> refs/remotes/origin/master
 	}
 
 	public Vertex getVertexByLabel(String pLabel)
@@ -67,13 +58,8 @@ public class Graph
 	public void DeleteEdge(Edge e)
 	{
 		lstEdge.remove(e);						// Remove from graph edge list
-<<<<<<< HEAD
 		e.getTarget().getInEdge().remove(e);	// Remove from target's InEdge list
 		e.getSource().getOutEdge().remove(e);	// Remove from source's OutEdge list
-=======
-		e.getTarget().GetInEdge().remove(e);	// Remove from target's InEdge list
-		e.getSource().GetOutEdge().remove(e);	// Remove from source's OutEdge list
->>>>>>> refs/remotes/origin/master
 	}
 	
 	public void DeleteVertex(Vertex v)
@@ -81,21 +67,13 @@ public class Graph
 		lstVertex.remove(v);			// Remove from graph vertex list
 		for (Edge e : v.getOutEdge())	// Remove all edges leaving v from targets' InEdge list
 		{
-<<<<<<< HEAD
 			e.getTarget().getInEdge().remove(e);
 			lstEdge.remove(e);
-=======
-			e.getTarget().GetInEdge().remove(e);
->>>>>>> refs/remotes/origin/master
 		}
 		for (Edge e : v.getInEdge())	// Remove all edges entering v from sources' OutEdge list
 		{
-<<<<<<< HEAD
 			e.getSource().getOutEdge().remove(e);
 			lstEdge.remove(e);
-=======
-			e.getSource().GetOutEdge().remove(e);
->>>>>>> refs/remotes/origin/master
 		}
 	}
 	
@@ -129,11 +107,7 @@ public class Graph
                 {
                     eOutgoing.setVisited(true);
                     vTarget = eOutgoing.getTarget();
-<<<<<<< HEAD
                     vTarget.setPrevVertex(pvCurrent);
-=======
-                    vTarget.SetPrevVertex(pvCurrent);
->>>>>>> refs/remotes/origin/master
                     if (FindCycle(vTarget, plstVisited))
                     	return true;
                 }
@@ -146,11 +120,7 @@ public class Graph
                 {
                 	eIncoming.setVisited(true);
                     vTarget = eIncoming.getSource();
-<<<<<<< HEAD
                     vTarget.setPrevVertex(pvCurrent);
-=======
-                    vTarget.SetPrevVertex(pvCurrent);
->>>>>>> refs/remotes/origin/master
                     if (FindCycle(vTarget, plstVisited))
                     	return true;
                 }
@@ -186,19 +156,11 @@ public class Graph
 				int angle=0;		
 				e.setVisited(true);
 				vTarget = e.getTarget();
-<<<<<<< HEAD
 				for (Edge e2 : v.getOutEdge())
-=======
-				for (Edge e2 : v.GetOutEdge())
->>>>>>> refs/remotes/origin/master
 				{
 					if (!e2.getVisited() && e2.getTarget() == vTarget)
 					{
 						e.setVisited(true);
-<<<<<<< HEAD
-=======
-						blnForwardCycle = true;
->>>>>>> refs/remotes/origin/master
 						e.setCurve(1);
 						e2.setCurve((int) Math.pow(-1, ++angle) * angle);
 					}
@@ -208,7 +170,6 @@ public class Graph
 		for (Edge e : lstEdge)
 		{
 			e.setVisited(false);
-<<<<<<< HEAD
 		}
 	}
 	
@@ -228,8 +189,6 @@ public class Graph
 			{
 				System.out.println("Edge " + e.getLabel() + " : " + e.getSource().getLabel() + " -> " + e.getTarget().getLabel() + " " + (e.getFlowType() != null ? e.getFlowType().toString() : ""));
 			}
-=======
->>>>>>> refs/remotes/origin/master
 		}
 	}
 }

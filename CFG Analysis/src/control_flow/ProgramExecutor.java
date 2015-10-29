@@ -8,12 +8,9 @@ import org.w3c.dom.NodeList;
 import org.w3c.dom.Node;
 import org.w3c.dom.Element;
 
-<<<<<<< HEAD:CFG Analysis/src/control_flow/Test.java
-import java.awt.Desktop;
-=======
 import ui.UIFrame;
 
->>>>>>> refs/remotes/origin/master:CFG Analysis/src/control_flow/ProgramExecutor.java
+import java.awt.Desktop;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -26,41 +23,6 @@ import graph.*;
 
 public class ProgramExecutor {
 	
-<<<<<<< HEAD:CFG Analysis/src/control_flow/Test.java
-	//private Graph graph = new Graph();
-
-	public Test()
-	{
-		Graph gGraph = null;
-		String sGraphPath = ""; //src/control_flow/TestAlgorithms.java";
-		//String sCodePath = "TestAlgorithms.TestFunction3.src.graphml";
-		String sCodePath = "code.txt";
-		
-		try
-		{
-			//System.out.println(new GraphParser().EvalExpr("(C(5*2,2) - 1)^3 + C(10,5)"));
-			if (sCodePath.length() > 0)
-			{
-				if (sGraphPath.length() > 0)
-					gGraph = ReadXML(sGraphPath, sCodePath);
-				else 
-					gGraph = new GraphParser().Parse(sCodePath);
-			}
-			if (gGraph != null)
-			{
-				ReducedGraph(gGraph);
-				AnalysisGraph(gGraph);
-				gGraph.PrintGraph(true, true);
-				gGraph.CurveEdges();
-				new DrawingApp(gGraph);
-				generateDot(gGraph);
-			}
-		}
-		catch (Exception ex)
-		{
-			System.out.println(ex.getMessage());
-		}
-=======
 	private UIFrame _frame;
 	
 	// default constructor
@@ -72,49 +34,42 @@ public class ProgramExecutor {
 		Graph gControlFlowGraph;
 		_frame = frame;
 		clearTextFromFrame();
-		gControlFlowGraph = readGraphMLFile(cfgFile, codeFile);
+		// File paths might have to be changed for linux
+		if (codeFile.getName().endsWith(".txt"))
+			gControlFlowGraph = new GraphParser().Parse(codeFile);
+		else 
+			gControlFlowGraph = readGraphMLFile(cfgFile, codeFile);
 		reduceGraph(gControlFlowGraph);
 		analyzeGraph(gControlFlowGraph);
 		gControlFlowGraph.CurveEdges();
 		new DrawingApp(gControlFlowGraph);
 		generateDot(gControlFlowGraph, saveFolder, flowGraphFileName);
->>>>>>> refs/remotes/origin/master:CFG Analysis/src/control_flow/ProgramExecutor.java
+		gControlFlowGraph.PrintGraph(false, true);		// DEBUG PRINT
 	}
-	
 
 	// Read XML and parse it, generate a graph
-<<<<<<< HEAD:CFG Analysis/src/control_flow/Test.java
-	public Graph ReadXML(String sXMLPath, String sCodePath)
-	{
-		File codes = new File(sCodePath);
-=======
 	public Graph readGraphMLFile(File cfgFile, File codeFile)
 	{
 		// Determines which type of statement/loop caused a split in flow and 
 		// saves it alongside its corresponding line number.
->>>>>>> refs/remotes/origin/master:CFG Analysis/src/control_flow/ProgramExecutor.java
 		Map<String,String> lineloop = new HashMap<String,String>();
         Map<String,String> lineif = new HashMap<String,String>();
 		try{
 			BufferedReader br = new BufferedReader(new FileReader(codeFile));
-			String line=null;
-			int lineNumber=1;
+			String line = null;
+			int lineNumber = 1;
 			while((line=br.readLine()) !=null){
-				if(line.contains("for")) lineloop.put(lineNumber+"", "for");
-				if(line.contains("while")) lineloop.put(lineNumber+"", "while");
-				if(line.contains("if")) lineif.put(lineNumber+"", "if");
+				if(line.contains("for")) lineloop.put(lineNumber + "", "for");
+				if(line.contains("while")) lineloop.put(lineNumber + "", "while");
+				if(line.contains("if")) lineif.put(lineNumber + "", "if");
 				lineNumber++;
 			}
 			br.close();
 		}catch(IOException e){
 			e.printStackTrace();
 		}
-<<<<<<< HEAD:CFG Analysis/src/control_flow/Test.java
-		File fXml = new File(sXMLPath);
-=======
 
 		// Uses DocumentBuilder to parse GraphML file and create an internal Graph representation
->>>>>>> refs/remotes/origin/master:CFG Analysis/src/control_flow/ProgramExecutor.java
 		DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
 		DocumentBuilder dBuilder = null;
 		Document doc = null;
@@ -148,8 +103,7 @@ public class ProgramExecutor {
 		doc.getDocumentElement().normalize();
 
 		lstNode = doc.getElementsByTagName("node");
-		for (int i = 0; i < lstNode.getLength(); i++)
-		{
+		for (int i = 0; i < lstNode.getLength(); i++) {
 			objNode = lstNode.item(i);
 			strName = objNode.getAttributes().item(0).getTextContent();
 			
@@ -157,8 +111,7 @@ public class ProgramExecutor {
 			for (int j = 0; j < lstChildNode.getLength(); j++)
 			{
 				objChildNode = lstChildNode.item(j);
-				if (objChildNode.getNodeType() == Node.ELEMENT_NODE)
-				{
+				if (objChildNode.getNodeType() == Node.ELEMENT_NODE) {
 					switch (objChildNode.getAttributes().item(0).getTextContent())
 					{
 						case "a_x":
@@ -177,8 +130,8 @@ public class ProgramExecutor {
 				}				
 			}
 			Vertex newv = new Vertex(strName, strLabel, strType, intX, intY);
-			if(lineloop.containsKey(newv.GetLabel())) newv.SetLooptype(lineloop.get(newv.GetLabel()));
-			if(lineif.containsKey(newv.GetLabel())) newv.SetType(lineif.get(newv.GetLabel()));
+			if(lineloop.containsKey(newv.getLabel())) newv.setLooptype(lineloop.get(newv.getLabel()));
+			if(lineif.containsKey(newv.getLabel())) newv.setType(lineif.get(newv.getLabel()));
 			gGraph.AddVertex(newv);
 		}
 		
@@ -188,65 +141,48 @@ public class ProgramExecutor {
 			
 			if (objNode.getNodeType() == Node.ELEMENT_NODE) {
 				Element eElement = (Element) objNode;
-				gGraph.AddEdge(new Edge(gGraph.GetVertexByName(eElement.getAttribute("source")), gGraph.GetVertexByName(eElement.getAttribute("target")), "e" + i));
+				gGraph.AddEdge(new Edge(gGraph.getVertexByName(eElement.getAttribute("source")), gGraph.getVertexByName(eElement.getAttribute("target")), "e" + i));
 			}
 		}
 		
 		return gGraph;
 	}
 	
-<<<<<<< HEAD:CFG Analysis/src/control_flow/Test.java
-	public void ReducedGraph(Graph g){
-		ArrayList<Vertex> gvs = new ArrayList<Vertex>();
-		for(Vertex v : g.GetVertex()) gvs.add(v);
-		for(Vertex v : gvs)
-=======
 	// Reduces input Graph g by consolidating nodes along one flow into a single edge.
 	// i.e. each Vertex will correspond to a fork/merge of flows in the graph,
 	// and each Edge corresponds to a single flow with cost = cost of the consolidated operations
+	// Note: It should be merging vertex of type = instruction, but this is more or less equivalent
 	public void reduceGraph(Graph g){
 		ArrayList<Vertex> lstVertices = new ArrayList<Vertex>();
 		for(Vertex v : g.getVerticesList()) {
 			lstVertices.add(v);
 		}
 		for(Vertex v : lstVertices)
->>>>>>> refs/remotes/origin/master:CFG Analysis/src/control_flow/ProgramExecutor.java
 		{
-			if(v.GetInEdge().size()==1 && v.GetOutEdge().size()==1 
-					&& !v.GetLabel().equals("START") && !v.GetLabel().equals("EXIT"))
+			if(v.getInEdge().size()==1 && v.getOutEdge().size()==1 
+					&& !v.getLabel().equals("START") && !v.getLabel().equals("EXIT"))
 			{
-				Edge newEdge = new Edge(v.GetInEdge().get(0).getSource(),v.GetOutEdge().get(0).getTarget(),
-						v.GetInEdge().get(0).getLabel());
+				Edge newEdge = new Edge(v.getInEdge().get(0).getSource(),v.getOutEdge().get(0).getTarget(),
+						v.getInEdge().get(0).getLabel());
 				if(newEdge.getTimecost().equals("")){
-					newEdge.setTimecost("C"+v.GetLabel());
+					newEdge.setTimecost("C"+v.getLabel());
 				} else {
-					newEdge.setTimecost("C"+v.GetLabel()+" + "+newEdge.getTimecost());
+					newEdge.setTimecost("C"+v.getLabel()+" + "+newEdge.getTimecost());
 				}
+				newEdge.setFlowType(v.getInEdge().get(0).getFlowType());
 				g.AddEdge(newEdge);
 				g.DeleteVertex(v);
-<<<<<<< HEAD:CFG Analysis/src/control_flow/Test.java
-				}
-=======
-				g.DeleteEdge(v.GetInEdge().get(0));
-				g.DeleteEdge(v.GetOutEdge().get(0));
 			}
->>>>>>> refs/remotes/origin/master:CFG Analysis/src/control_flow/ProgramExecutor.java
 		}
 		//Put Start node in first
-		Vertex start = g.GetVertexByLabel("START");
-<<<<<<< HEAD:CFG Analysis/src/control_flow/Test.java
-		g.GetVertex().remove(start);
-		g.GetVertex().add(0, start);
-		
-=======
-		g.DeleteVertex(g.GetVertexByLabel("START"));
+		Vertex start = g.getVertexByLabel("START");
+		g.getVerticesList().remove(start);
 		g.getVerticesList().add(0, start);
->>>>>>> refs/remotes/origin/master:CFG Analysis/src/control_flow/ProgramExecutor.java
 		//Reassign the edge label
 		int k=1;
 		for(Vertex v : g.getVerticesList()){
-			if(!v.GetVisited() && v.GetOutEdge().size()>0) {
-				for(Edge e : v.GetOutEdge()) 
+			if(!v.getVisited() && v.getOutEdge().size()>0) {
+				for(Edge e : v.getOutEdge()) 
 				{
 					e.setLabel("e"+k++);
 					if(e.getTimecost().equals("")) e.setTimecost("0");
@@ -264,7 +200,7 @@ public class ProgramExecutor {
 	
 	// generate the DOT file containing the flow graph and save it to the desired location
 	public void generateDot(Graph g, File saveFolder, String flowGraphFileName){
-		File outDot = new File(saveFolder.getAbsolutePath()+ "\\" + flowGraphFileName);
+		File outDot = new File(saveFolder.getAbsolutePath()+ "\\" + flowGraphFileName + ".dot");
 		String graphname = flowGraphFileName;
 		String nodeshape="";
 		try{
@@ -272,12 +208,12 @@ public class ProgramExecutor {
 			bfw.write(" digraph \""+graphname +"\" {");bfw.newLine();
 			bfw.write("graph [label=\""+graphname+ "\"];");bfw.newLine();
 			for(Vertex v : g.getVerticesList()){
-				if(v.GetLabel().equals("START")||v.GetLabel().equals("EXIT")) {
+				if(v.getLabel().equals("START")||v.getLabel().equals("EXIT")) {
 					nodeshape="box"; 
 				} else {
 					nodeshape="circle";
 				}
-				bfw.write(v.GetLabel()+ " "+"[label=\""+v.GetLabel()+"\",shape="+nodeshape
+				bfw.write(v.getLabel()+ " "+"[label=\""+v.getLabel()+"\",shape="+nodeshape
 						+" style=filled, fillcolor=\"#CECEFF\", fixedsize=true, fontsize=12, width=0.78, height=0.36 ]");
 				bfw.newLine();
 			}
@@ -289,29 +225,26 @@ public class ProgramExecutor {
 				} else {
 					edgecolor="black";
 				}
-				if(e.getSource().GetLabel().equals("EXIT")) {
+				if(e.getSource().getLabel().equals("EXIT")) {
 					style="dashed"; 
 				} else {
 					style="solid"; 
 				}
-				bfw.write(" "+e.getSource().GetLabel()+" -> "+e.getTarget().GetLabel()
+				bfw.write(" "+e.getSource().getLabel()+" -> "+e.getTarget().getLabel()
 						+" [label=\""+e.getLabel()+"\", style="+style+" color="+edgecolor+ "]");
 				bfw.newLine();
 			}
 			bfw.write("}");
 			bfw.close();
-		}catch(IOException e){
+			
+			new ProcessBuilder("dot", "-Tsvg", saveFolder + "\\" + flowGraphFileName + ".dot", "-o", saveFolder + "\\" + flowGraphFileName + ".svg").start();
+			Thread.sleep(1000);	// just in case it wasn't generated in time
+			Desktop.getDesktop().open(new File(saveFolder + "\\" + flowGraphFileName + ".svg"));
+		} catch(IOException e){
 			e.printStackTrace();
-		}
-
-		try
-		{
-			new ProcessBuilder("graphviz-2.38\\bin\\dot", "-Tpng", "test.dot", "-o", "test.png").start();
-			Desktop.getDesktop().open(new File("test.png"));
-		} 
-		catch (IOException e)
-		{
-			System.out.println(e.getMessage());
+		} catch (InterruptedException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
 		}
 	}
 
@@ -320,20 +253,15 @@ public class ProgramExecutor {
 	{
 		Edge eFlow;
 		Vertex vSrc = null, vTgt = null;
-		Vertex vStart = pGraph.GetVertexByLabel("START");									// Start vertex
-		Vertex vEnd = pGraph.GetVertexByLabel("EXIT");										// End vertex
+		Vertex vStart = pGraph.getVertexByLabel("START");									// Start vertex
+		Vertex vEnd = pGraph.getVertexByLabel("EXIT");										// End vertex
 		ArrayList<Vertex> lstVertex = null;													// Temp list of vertex cycle
 		ArrayList<ArrayList<Vertex>> lstCycleVertex = new ArrayList<ArrayList<Vertex>>();	// List all lists of cycles
         ArrayList<Edge> independentEdges = new ArrayList<Edge>(); // list of independent flows
  		// Add virtual edge from start to end, so we can assign equation of all edges outside any loops to 1
 		eFlow = new Edge(vEnd, vStart, "e0");
-<<<<<<< HEAD:CFG Analysis/src/control_flow/Test.java
-		eFlow.SetValue("1");
-		eFlow.SetVisible(false);
-=======
-		eFlow.setCost("1");
+		eFlow.setValue("1");
 		eFlow.setVisible(false);
->>>>>>> refs/remotes/origin/master:CFG Analysis/src/control_flow/ProgramExecutor.java
 		pGraph.AddEdge(eFlow);
 		
 		// Find 1 cycle per loop, set 1 edge in the cycle found as independent flow
@@ -345,12 +273,7 @@ public class ProgramExecutor {
 				eFlow = lstVertex.get(lstVertex.size() - 1).FindEdge(lstVertex.get(0), false);
 				if (eFlow != null)
 				{
-<<<<<<< HEAD:CFG Analysis/src/control_flow/Test.java
-					eFlow.SetIndependent(true);
-=======
-					//System.out.println("Independent Flow " + eFlow.GetLabel() + " : " + eFlow.GetSource().GetLabel() + " -> " + eFlow.GetTarget().GetLabel());
 					eFlow.setIndependent(true);
->>>>>>> refs/remotes/origin/master:CFG Analysis/src/control_flow/ProgramExecutor.java
 					independentEdges.add(eFlow);
 				}
 			}
@@ -361,21 +284,17 @@ public class ProgramExecutor {
 		while (lstVertex.size() != 0);
 		
 		// *Debug print
-		/*String temp;
+		String temp;
 		for (ArrayList<Vertex> l : lstCycleVertex)
 		{
 			temp = "Cycle: ";
 			for (Vertex v : l)
 			{
-				temp += v.GetLabel() + ", ";
+				temp += v.getLabel() + ", ";
 			}
 			appendLineToFrame(temp.substring(0, temp.length() - 2));
 		}
-<<<<<<< HEAD:CFG Analysis/src/control_flow/Test.java
-		System.out.println();*/
-=======
 		appendLineToFrame("");
->>>>>>> refs/remotes/origin/master:CFG Analysis/src/control_flow/ProgramExecutor.java
 		
 		// Generate dependent flow equations
 		String strEquation;
@@ -384,24 +303,17 @@ public class ProgramExecutor {
 		
 		for (ArrayList<Vertex> l : lstCycleVertex)
 		{
-			// Get direction of independent flow (last edge)
+			// get direction of independent flow (last edge)
 			vSrc = l.get(l.size() - 1);
 			vTgt = l.get(0);
 			eFlow = vSrc.FindDiffIndepEdge(vTgt);
 			if (eFlow != null)
 			{
-<<<<<<< HEAD:CFG Analysis/src/control_flow/Test.java
-				blnForward = (eFlow.GetTarget() == vTgt);		// Direction of independent flow, A -> B = Forward, A <- B = Backward
-				strIndFlowLabel = eFlow.GetValue();				// If the flow has an assigned value, use that instead of the flow label
-				if (strIndFlowLabel.length() == 0)
-					strIndFlowLabel = eFlow.GetLabel();
-=======
 				blnForward = (eFlow.getTarget() == vTgt);		// Direction of independent flow, A -> B = Forward, A <- B = Backward
-				strIndFlowLabel = eFlow.getCost();				// If the flow has an assigned cost, use that instead of the flow label
+				strIndFlowLabel = eFlow.getValue();				// If the flow has an assigned value, use that instead of the flow label
 				if (strIndFlowLabel.length() == 0){
 					strIndFlowLabel = eFlow.getLabel();
 				}
->>>>>>> refs/remotes/origin/master:CFG Analysis/src/control_flow/ProgramExecutor.java
 			}
 			else
 			{
@@ -409,8 +321,8 @@ public class ProgramExecutor {
 				return;
 			}
 
-			// Get direction of dependent flow and determine +/- independent flow
-			// eFlow.GetTarget() == vTgt --> Forward edge
+			// get direction of dependent flow and determine +/- independent flow
+			// eFlow.getTarget() == vTgt --> Forward edge
 			for (int intVertex = 0; intVertex < l.size() - 1; intVertex++)
 			{
 				vSrc = l.get(intVertex);
@@ -423,6 +335,7 @@ public class ProgramExecutor {
 					strEquation += ((blnForward == (eFlow.getTarget() == vTgt)) ? ((strEquation.length() == 0) ? "" : " + ") : " - ") + strIndFlowLabel;				
 					eFlow.setEquation(strEquation);
 				}
+				
 			}
 		}
 		pGraph.ResetGraph(false);
@@ -443,24 +356,24 @@ public class ProgramExecutor {
 
 		for(ArrayList<Vertex> cycle : lstCycleVertex)
 			if(!cycle.get(0).equals("START")){
-            if(cycle.get(0).GetLooptype()!=null) 
-            	if(!loopVertices.containsKey(cycle.get(0).GetLabel()))
-            		loopVertices.put(cycle.get(0).GetLabel(), cycle);
-            	else if(loopVertices.get(cycle.get(0).GetLabel()).size()<cycle.size()){
-            		loopVertices.remove(cycle.get(0).GetLabel());
-            		loopVertices.put(cycle.get(0).GetLabel(), cycle);
+            if(cycle.get(0).getLooptype()!=null) 
+            	if(!loopVertices.containsKey(cycle.get(0).getLabel()))
+            		loopVertices.put(cycle.get(0).getLabel(), cycle);
+            	else if(loopVertices.get(cycle.get(0).getLabel()).size()<cycle.size()){
+            		loopVertices.remove(cycle.get(0).getLabel());
+            		loopVertices.put(cycle.get(0).getLabel(), cycle);
             	}
 		}
 		Map<String,String> loopstr=new HashMap<String,String>();
 		for(String key : loopVertices.keySet()){ 
 			StringBuffer s = new StringBuffer();
-			for(Vertex v : loopVertices.get(key)) s.append(v.GetLabel()+" ");
+			for(Vertex v : loopVertices.get(key)) s.append(v.getLabel()+" ");
 			loopstr.put(key, s.toString());
 		}
 		ArrayList<String> cycleStr = new ArrayList<String>();
 		for(ArrayList<Vertex> cycle : lstCycleVertex){
 			StringBuffer s = new StringBuffer();
-			for(Vertex v : cycle) s.append(v.GetLabel()+" ");
+			for(Vertex v : cycle) s.append(v.getLabel()+" ");
 			cycleStr.add(s.toString());
 		}
 		int index=0;
@@ -469,15 +382,15 @@ public class ProgramExecutor {
 				 Edge flow = independentEdges.get(index);
 		         Vertex c=null; // condition predecessors vertex of e, 
                                 // if->A, e=if->A, c=if
-		         if(flow.getSource().GetLabel().equals(cycle.get(0).GetLabel()))
+		         if(flow.getSource().getLabel().equals(cycle.get(0).getLabel()))
 		        	 c=cycle.get(0);
 		         else c=cycle.get(cycle.size()-1);
 		         for(String key : loopstr.keySet()){
 		        	 if(loopstr.get(key).contains(cycleStr.get(index))) 
-		        	 {flow.setLooptype(loopVertices.get(key).get(0).GetLooptype());break;}
+		        	 {flow.setLooptype(loopVertices.get(key).get(0).getLooptype());break;}
 		         }
-		         if(c.GetLooptype()!=null) flow.setCondition(c.GetLooptype());
-		         else if(c.GetType() !=null) flow.setCondition(c.GetType());
+		         if(c.getLooptype()!=null) flow.setCondition(c.getLooptype());
+		         else if(c.getType() !=null) flow.setCondition(c.getType());
 			} index++;
 		}
 		appendLineToFrame("");
@@ -508,10 +421,6 @@ public class ProgramExecutor {
 	
 	public static void main(String[] args)
 	{
-//		new Test();
-		
-//		new UIFrame();
-		
 		new UIFrame();
 	}
 }
