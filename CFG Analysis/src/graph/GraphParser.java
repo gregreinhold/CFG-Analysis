@@ -502,6 +502,250 @@ public class GraphParser
 		return iNum;
 	}
 	
+	// Our cost equation has a simple structure, basically a sum of these terms: c1 * (e1 + e2) or c1 * (c2 + e1) ...etc
+	// This should simplify it to the sum of constants and variables multiply by a constant with constants inside parenthesis extracted out.
+	public String EvalExprAsString(String expr) throws Exception
+	{
+		String sReturn = "";
+		String sLeft = "";
+		String sRight = "";
+		int iNum = 0;
+		int[] aOperatorIndex;
+		boolean bLeft, bRight, bIsAdd = true, bIsInt = true;
+		
+		// Remove meaningless parenthesis/spaces
+		expr = RemoveParenthesis(expr);
+		
+		// If expr is an int, return it
+		try
+		{
+			sReturn = String.valueOf(Integer.parseInt(expr));
+		}
+		catch (Exception e)
+		{
+			bIsInt = false;
+		}
+		if (!bIsInt)	// Can probably put this entire block inside the catch block...
+		{
+			if (mVariable.containsKey(expr))					// Check variable table for assignment
+				return EvalExprAsString(mVariable.get(expr));	// Very probable infinite recursion
+
+			// Single pass on expr
+			aOperatorIndex = FindOperatorIndices(expr);
+			
+			// To preserve order of arithmetic operation, split +,- before *,/.
+			if (aOperatorIndex[ADD] > -1)
+			{
+				sLeft = EvalExprAsString(expr.substring(0, aOperatorIndex[ADD]));
+				sRight = EvalExprAsString(expr.substring(aOperatorIndex[ADD] + 1, expr.length()));
+				bLeft = IsNumeric(sLeft);
+				bRight = IsNumeric(sRight);
+				if (bLeft && bRight)
+					sReturn = String.valueOf(Integer.parseInt(sLeft) + Integer.parseInt(sRight));
+				else sReturn = sLeft + "+" + sRight;
+			}
+			else if (aOperatorIndex[SUB] > -1)
+			{
+				sLeft = EvalExprAsString(expr.substring(0, aOperatorIndex[SUB]));
+				sRight = EvalExprAsString(expr.substring(aOperatorIndex[SUB] + 1, expr.length()));
+				bLeft = IsNumeric(sLeft);
+				bRight = IsNumeric(sRight);
+				if (bLeft && bRight)
+					sReturn = String.valueOf(Integer.parseInt(sLeft) - Integer.parseInt(sRight));
+				else sReturn = sLeft + "-" + sRight;
+			}
+			else if (aOperatorIndex[MUL] > -1)
+			{
+				sLeft = EvalExprAsString(expr.substring(0, aOperatorIndex[MUL]));
+				sRight = EvalExprAsString(expr.substring(aOperatorIndex[MUL] + 1, expr.length()));
+				bLeft = IsNumeric(sLeft);
+				bRight = IsNumeric(sRight);
+				if (bLeft && bRight)
+				{
+					sReturn = String.valueOf(Integer.parseInt(sLeft) * Integer.parseInt(sRight));
+				}
+				else if (bLeft)
+				{
+					iNum = Integer.parseInt(sLeft);
+					if (iNum == 1)
+					{
+						sReturn = sRight;
+					}
+					else if (iNum == 0)
+					{
+						sReturn = "0";
+					}
+					else
+					{
+						for (Token token : Tokenize(sRight))
+						{
+							if (token.type == TokenType.CONSTANT)
+							{
+								if (bIsAdd)
+									sReturn += iNum * Integer.parseInt(token.value);
+								else sReturn += token.value;
+							}
+							else if (token.type == TokenType.VARIABLE)
+							{
+								if (bIsAdd)
+									sReturn += sLeft + "*" + token.value;
+								else sReturn += token.value;
+							}
+							else if (token.type == TokenType.OPERATOR)
+							{
+								sReturn += token.value;
+								if (token.value.charAt(0) == OperatorType.ADD.Char() || token.value.charAt(0) == OperatorType.SUB.Char())
+									bIsAdd = true;
+								else bIsAdd = false;
+							}
+						}
+					}
+				}
+				else if (bRight)
+				{
+					iNum = Integer.parseInt(sRight);
+					if (iNum == 1)
+					{
+						sReturn = sLeft;
+					}
+					else if (iNum == 0)
+					{
+						sReturn = "0";
+					}
+					else
+					{
+						for (Token token : Tokenize(sLeft))
+						{
+							if (token.type == TokenType.CONSTANT)
+							{
+								if (bIsAdd)
+									sReturn += iNum * Integer.parseInt(token.value);
+								else sReturn += token.value;
+							}
+							else if (token.type == TokenType.VARIABLE)
+							{
+								if (bIsAdd)
+									sReturn += sLeft + "*" + token;
+								else sReturn += token.value;
+							}
+							else if (token.type == TokenType.OPERATOR)
+							{
+								sReturn += token.value;
+								if (token.value.charAt(0) == OperatorType.ADD.Char() || token.value.charAt(0) == OperatorType.SUB.Char())
+									bIsAdd = true;
+								else bIsAdd = false;
+							}
+						}
+					}
+				}
+			}
+			// The rest doesn't appear in the cost equation so I left these unimplemented
+			else if (aOperatorIndex[DIV] > -1)
+			{	
+				//sReturn = EvalExpr2(expr.substring(0, aOperatorIndex[DIV])) / EvalExpr2(expr.substring(aOperatorIndex[DIV] + 1, expr.length()));
+			}
+			else if (aOperatorIndex[POW] > -1)
+			{
+				//sReturn = (String) Math.pow(EvalExpr2(expr.substring(0, aOperatorIndex[POW])), EvalExpr2(expr.substring(aOperatorIndex[POW] + 1, expr.length())));
+			}
+			else
+			{
+				// This block is for other math operations
+				/*iOperatorIndex = expr.indexOf(',');
+				if (expr.startsWith("C(") && expr.endsWith(")") && iOperatorIndex > -1)
+				{
+					iNum = C(EvalExpr(expr.substring(2, iOperatorIndex)), EvalExpr(expr.substring(iOperatorIndex + 1, expr.length() - 1)));
+				}*/
+				sReturn = expr;
+			}
+		}
+		
+		return sReturn;
+	}
+	
+	// By the time we reach this function, the function should have variables multiply by some (hopefully constant) coefficient.
+	// Simply identify constants apart from coefficients and sum them.  
+	// Then identify variables and their coefficient and put them in the local variable table, sum the coefficients where appropriate.
+	// Ideally this should have been part of EvalExpr or EvalExprAsString
+	public String Simplify(String expr) throws Exception
+	{
+		int iConstant = 0;
+		int iTemp;
+		char cLastOperator;
+		boolean bPositive = true;
+		String sCoeff = "1";
+		String sTemp;
+		HashMap<String, String> mVar = new HashMap<String, String>();
+		Token lastToken = null;
+		StringBuffer sb = new StringBuffer();
+		
+		for (Token token : Tokenize(expr))
+		{
+			if (token.type == TokenType.OPERATOR)
+			{
+				cLastOperator = token.value.charAt(0);
+				if (cLastOperator == OperatorType.MUL.Char() || cLastOperator == OperatorType.DIV.Char())
+				{
+					// Was going to do something here, forgot what it was
+				}
+				else	// +, - 
+				{
+					if (lastToken.type == TokenType.CONSTANT)
+					{
+						if (bPositive)
+							iConstant += Integer.parseInt(lastToken.value);
+						else
+							iConstant -= Integer.parseInt(lastToken.value);
+					}
+					if (token.value.charAt(0) == OperatorType.ADD.Char())
+						bPositive = true;
+					else if (token.value.charAt(0) == OperatorType.SUB.Char())
+						bPositive = false;
+					sCoeff = "1";
+				}
+			}
+			else if (token.type == TokenType.VARIABLE)
+			{
+				if (mVar.containsKey(token.value))
+				{
+					mVar.put(token.value, EvalExprAsString((!bPositive ? "-" : "") + sCoeff + "+" + mVar.get(token.value)));
+				}
+				else
+				{
+					mVar.put(token.value, (!bPositive ? "-" : "") + sCoeff);
+				}
+				sCoeff = "1";
+			}
+			else if (token.type == TokenType.CONSTANT)
+			{
+				sCoeff = token.value;
+			}
+			else { /* What else can it be? */ }
+			lastToken = token;
+		}
+		for (String key : mVar.keySet())
+		{
+			sTemp = mVar.get(key);
+			iTemp = Integer.parseInt(sTemp);
+			if (iTemp > 0)
+			{
+				sb.append("+" + (iTemp == 1 ? "" : sTemp + "*") + key);
+			}
+			else if (iTemp < 0)
+			{
+				sb.append("-" + (iTemp == -1 ? "" : sTemp + "*") + key);
+			}
+		}
+		sTemp = sb.toString();
+		if (iConstant == 0)
+		{
+			if (sTemp.startsWith("+"))
+				return sTemp.substring(1, sTemp.length());
+			else return sTemp;
+		}
+		else return String.valueOf(iConstant) + sb.toString();
+	}
+	
 	public String RemoveParenthesis(String s)
 	{
 		char c;
