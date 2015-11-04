@@ -201,10 +201,18 @@ public class GraphParser
 						}
 						else if (token.value.equals(Keyword.ENDIF.Value()))
 						{
-							if (lstKeyword.peekLast() != Keyword.IF)
-								throw new Exception("ENDIF without IF.");
+							if (lstKeyword.peekLast() != Keyword.IF && lstKeyword.peekLast() != Keyword.ELSE)
+								throw new Exception("[Line" + iLine + "] ENDIF without IF.");
 							nodeType = NodeType.BRANCH_MERGE;
 							lstExpectedToken.clear();
+						}
+						else if (token.value.equals(Keyword.ELSE.Value()))
+						{
+							if (lstKeyword.removeLast() != Keyword.IF)
+								throw new Exception("[Line" + iLine + "] ELSE without IF.");
+							nodeType = NodeType.ELSE;
+							lstExpectedToken.clear();
+							lstKeyword.add(Keyword.ELSE);
 						}
 						else if (token.value.equals(Keyword.ENDFOR.Value()))
 						{
@@ -334,7 +342,9 @@ public class GraphParser
 					{
 						// Drawings for debug
 						x += VDISTANCE / 2;
-						y = lstBranchVertex.peekLast().getY();
+						if (lstBranchVertex.peekLast().getType().equals(NodeType.IF_BRANCH.toString()))
+							y = lstBranchVertex.peekLast().getY();
+						else y += VDISTANCE / 2;
 						
 						vNewVertex = new Vertex(String.valueOf(iLine), String.valueOf(iLine), nodeType.toString(), x, y);
 						vNewVertex.setExpr(sExpr);
@@ -350,6 +360,11 @@ public class GraphParser
 						lstKeyword.removeLast();
 						iEdge += 2;
 					}
+					else if (nodeType == NodeType.ELSE)
+					{
+						vNewVertex = lstBranchVertex.removeLast();
+						lstBranchVertex.add(vLastVertex);
+					}
 					else if (nodeType == NodeType.LOOP_MERGE)
 					{
 						vNewVertex = lstBranchVertex.peekLast();		// Back to where the loop starts
@@ -362,10 +377,19 @@ public class GraphParser
 					else 
 					{
 						// Drawings for debugging, not used for actual project deliverable
+						
 						if (vLastVertex.getType().equals(NodeType.IF_BRANCH.toString()))
 						{
-							x = vLastVertex.getX() + VDISTANCE / 2;
-							y = vLastVertex.getY() + VDISTANCE / 2;
+							if (!lstKeyword.isEmpty() && lstKeyword.getLast() == Keyword.ELSE)
+							{
+								x = vLastVertex.getX() + VDISTANCE / 2;
+								y = vLastVertex.getY() - VDISTANCE / 2;
+							}
+							else
+							{
+								x = vLastVertex.getX() + VDISTANCE / 2;
+								y = vLastVertex.getY() + VDISTANCE / 2;
+							}
 						}
 						else if ((vLastVertex.getType().equals(NodeType.FOR_BRANCH.toString()) || vLastVertex.getType().equals(NodeType.WHILE_BRANCH.toString()))	// This needs to be simplified
 								&& lstBranchVertex.size() > 0 && (lstBranchVertex.peekLast().getType().equals(NodeType.FOR_BRANCH.toString()) || 					// Basically if the last vertex is a loop, then the new vertex is within a loop, place the new vertex under the loop
@@ -824,6 +848,8 @@ public class GraphParser
 			{
 				if (kw == Keyword.IF)	// The edge leading to if branch does not count as inside the if
 					et = FlowType.IF;
+				else if (kw == Keyword.ELSE)
+					et = FlowType.ELSE;
 				else if (kw == Keyword.FOR)
 					et = FlowType.FOR;
 				else if (kw == Keyword.WHILE)
@@ -832,9 +858,13 @@ public class GraphParser
 			else	// Outer
 			{
 				if (kw == Keyword.FOR && et == FlowType.IF)
-					et = FlowType.IF_INSIDE_FOR;
+					et = FlowType.IF_INSIDE_FOR_TRUE;
 				else if (kw == Keyword.WHILE && et == FlowType.IF)
-					et = FlowType.IF_INSIDE_WHILE;
+					et = FlowType.IF_INSIDE_WHILE_TRUE;
+				else if (kw == Keyword.WHILE && et == FlowType.ELSE)
+					et = FlowType.IF_INSIDE_WHILE_FALSE;
+				else if (kw == Keyword.FOR && et == FlowType.ELSE)
+					et = FlowType.IF_INSIDE_FOR_FALSE;
 			}
 		}
 		return et;
@@ -884,6 +914,7 @@ public class GraphParser
 				sToken.equals(Keyword.ENDIF.Value()) ||
 				sToken.equals(Keyword.ENDFOR.Value()) ||
 				sToken.equals(Keyword.ENDWHILE.Value()) ||
+				sToken.equals(Keyword.ELSE.Value()) ||
 				sToken.equals(Keyword.TO.Value()));			
 	}
 

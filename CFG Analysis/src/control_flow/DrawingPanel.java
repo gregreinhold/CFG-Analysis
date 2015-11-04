@@ -66,8 +66,8 @@ public class DrawingPanel extends JPanel
 	            }
 	            else
 	            {
-	               	intXText = (int) ((pStart.x + pEnd.x)/2 + 30 * intCurve * Math.sin(dblAngle));
-	               	intYText = (int) ((pStart.y + pEnd.y)/2 - 10 * Math.cos(dblAngle));
+	               	intXText = (int) ((pStart.x + pEnd.x)/2 + 10 * intCurve * Math.sin(dblAngle));
+	               	intYText = (int) ((pStart.y + pEnd.y)/2 - 10 * intCurve * Math.cos(dblAngle));
 	            }
 	       		DrawCurve(g2, pStart.x, pStart.y, pEnd.x, pEnd.y, dblAngle, intCurve, e.getLabel());
 	        	g.drawString(e.getLabel(), intXText, intYText);

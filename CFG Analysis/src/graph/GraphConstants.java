@@ -35,7 +35,8 @@ public final class GraphConstants {
 		WHILE_BRANCH,
 		IF_BRANCH,
 		BRANCH_MERGE,
-		LOOP_MERGE
+		LOOP_MERGE,
+		ELSE
 	}
 	
 	public enum Keyword
@@ -46,6 +47,7 @@ public final class GraphConstants {
 		ENDIF ("endif"),
 		ENDFOR ("endfor"),
 		ENDWHILE ("endwhile"),
+		ELSE ("else"),
 		ASSIGN ("="),	// Assign is not a keyword but put it here for convenience
 		TO ("to");
 		
@@ -62,13 +64,14 @@ public final class GraphConstants {
 	
 	public enum FlowType
 	{
-		IF_INSIDE_FOR,
-		IF_INSIDE_WHILE,
-		WHILE_INSIDE_IF,
-		FOR_INSIDE_IF,
+		IF_INSIDE_FOR_TRUE,
+		IF_INSIDE_FOR_FALSE,
+		IF_INSIDE_WHILE_TRUE,
+		IF_INSIDE_WHILE_FALSE,
 		FOR,
 		WHILE,
-		IF
+		IF,
+		ELSE
 	}
 	
 	public enum OperatorType

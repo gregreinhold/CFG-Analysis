@@ -243,13 +243,16 @@ public class ProgramExecutor {
 			bfw.write("}");
 			bfw.close();
 
-			new ProcessBuilder("dot", "-Tsvg", saveFolder + "\\" + flowGraphFileName + ".dot", "-o", saveFolder + "\\" + flowGraphFileName + ".svg").start();
-			Thread.sleep(1000);	// just in case it wasn't generated in time
+			Process pr = new ProcessBuilder("dot", "-Tsvg", saveFolder + "\\" + flowGraphFileName + ".dot", "-o", saveFolder + "\\" + flowGraphFileName + ".svg").start();
+			pr.waitFor();
 			Desktop.getDesktop().open(new File(saveFolder + "\\" + flowGraphFileName + ".svg"));
-		}catch(IOException e){
+		}
+		catch(IOException e){
 			e.printStackTrace();
-		} catch (InterruptedException e1) {
-			e1.printStackTrace();
+		}
+		catch (Exception e)
+		{
+			e.printStackTrace();
 		}
 	}
 
