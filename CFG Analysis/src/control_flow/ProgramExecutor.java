@@ -358,13 +358,72 @@ public class ProgramExecutor {
 				appendLineToFrame(e.getLabel() + " = " + e.getEquation());
 		}
 		appendLineToFrame("");
-		// Print Edge time cost
-		for (Edge e : pGraph.getEdgeList()){
-			if(e.getVisible()){
-				appendLineToFrame("C"+e.getLabel() + " = " + e.getTimecost());
+		String totalCost = "";
+		String subCost = "";
+		//Print Edge Time cost
+		for (Edge e : pGraph.getEdgeList())
+			if(e.getVisible())
+			{
+				if(subCost == "")
+					subCost = "(" + e.getTimecost()+")*"+e.getLabel();
+				else
+					subCost = "+(" + e.getTimecost()+")*"+e.getLabel();
+				appendLineToFrame("C"+e.getLabel() + " = (" + e.getTimecost()+")*"+e.getLabel());
+			    totalCost = totalCost+subCost;
+			}	
+		appendLineToFrame(" ");
+		appendLineToFrame("C="+totalCost);
+		appendLineToFrame(" ");
+		String[] tokens = totalCost.split("e");
+		int n=tokens.length;
+		int cValues[] = new int[n];
+		for (int i=0;i< n;i++)
+		{
+			int c =0; 
+			for(int j=0;j<tokens[i].length();j++)
+			{
+				String token = tokens[i];
+				if(token.charAt(j)=='C')
+					c++;
 			}
+			cValues[i] = c;
 		}
-		
+		int i =0;
+		totalCost ="";
+		for (Edge e : pGraph.getEdgeList())
+		{	
+			if(e.getVisible())
+			{
+			    if(totalCost == "")
+			    {
+			    	if(e.getEquation() == "")
+			    		totalCost = totalCost+"("+cValues[i]+")*"+e.getLabel();
+			    	else
+			    		totalCost = totalCost+"("+cValues[i]+")*"+"("+e.getEquation()+")";
+			    }
+			    else
+			    {
+			    	if(e.getEquation() == "")
+			    		totalCost = totalCost+"+("+cValues[i]+")*"+e.getLabel();
+			    	else
+			    		totalCost = totalCost+"+("+cValues[i]+")*"+"("+e.getEquation()+")";
+			    }
+			    i++;
+			}
+		}	
+		appendLineToFrame("C="+totalCost);
+		String finalCost = "";
+		//Print final cost equation
+		GraphParser gp = new GraphParser();
+		try {
+			finalCost = gp.Simplify(gp.EvalExprAsString(totalCost));
+		} catch (Exception e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+
+		appendLineToFrame(" ");
+		appendLineToFrame("C="+finalCost);
 		//find the vertices that begin each loop (if any)
 		Map<String,ArrayList<Vertex>> loopVertices = new HashMap<String,ArrayList<Vertex>>();
 
