@@ -37,6 +37,7 @@ public class ProgramExecutor {
 	public void execute(File cfgFile, File codeFile, File saveFolder, String flowGraphFileName, UIFrame frame){
 		Graph gControlFlowGraph;
 		_frame = frame;
+		
 		clearTextFromFrame();
 		// File paths might have to be changed for linux
 		if (codeFile.getName().endsWith(".txt"))
@@ -106,7 +107,6 @@ public class ProgramExecutor {
 			return null;
 		}
 		doc.getDocumentElement().normalize();
-
 		lstNode = doc.getElementsByTagName("node");
 		for (int i = 0; i < lstNode.getLength(); i++) {
 			objNode = lstNode.item(i);
@@ -165,7 +165,10 @@ public class ProgramExecutor {
 		for(Vertex v : lstVertices)
 		{
 			if(v.getInEdgeList().size()==1 && v.getOutEdgeList().size()==1 
-					&& !v.getLabel().equals("START") && !v.getLabel().equals("EXIT"))
+					&& !v.getLabel().equals("START") && !v.getLabel().equals("EXIT")
+					&& ! v.getInEdgeList().get(0).getSource().getLabel().equals(
+							v.getOutEdgeList().get(0).getTarget().getLabel()))
+				    // not the only node in the loop
 			{
 				Edge newEdge = new Edge(v.getInEdgeList().get(0).getSource(),v.getOutEdgeList().get(0).getTarget(),
 						v.getInEdgeList().get(0).getLabel());
@@ -271,6 +274,7 @@ public class ProgramExecutor {
 		eFlow.setValue("1");
 		eFlow.setVisible(false);
 		pGraph.addEdge(eFlow);
+		
 		
 		// Find 1 cycle per loop, set 1 edge in the cycle found as independent flow
 		do
@@ -498,12 +502,22 @@ public class ProgramExecutor {
 				if(e.getCondition()!=null && e.getLoopType()!=null){
 
 					appendLineToFrame(e.getLabel()+ ": " + e.getCondition()+" statement in "+e.getLoopType() + " loop");
+					if(e.getCondition().equals("if") && e.getLoopType().equals("for"))
+						appendLineToFrame("      Binomial Distribution.");
+					else if(e.getCondition().equals("if") && e.getLoopType().equals("while"))
+						appendLineToFrame("      Poisson Distribution.");
 				}
 				else if(e.getLoopType()!=null){
 					appendLineToFrame(e.getLabel()+ ": " + e.getLoopType() + " loop");
+					if(e.getLoopType().equals("for"))
+						appendLineToFrame("      Deterministic.");
+					if(e.getLoopType().equals("while"))
+						appendLineToFrame("      Modified Geometric Distribution.");
 				}
 				else {
 					appendLineToFrame(e.getLabel()+ ": " + e.getCondition() + " statement");
+					if(e.getCondition().equals("if"))
+						appendLineToFrame("      Bernoulli Distribution.");
 				}
 			}
 	}
