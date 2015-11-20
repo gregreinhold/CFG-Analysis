@@ -31,7 +31,7 @@ public class SelectFilePanel extends SelectPanel {
 	        	File selectedFile = null;
 	            try {
 	
-	            	JFileChooser jfc = new JFileChooser();
+	            	JFileChooser jfc = new JFileChooser(System.getProperty("user.dir"));
 	            	switch(_fileType){
 	            	case GraphML:
 		            	jfc.addChoosableFileFilter(new FileNameExtensionFilter("GraphML File","graphml"));

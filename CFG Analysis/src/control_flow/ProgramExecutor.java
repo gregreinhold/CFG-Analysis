@@ -24,10 +24,14 @@ import java.util.HashMap;
 import java.util.Map;
 
 import graph.*;
+import graph.GraphConstants.FlowType;
+import graph.GraphConstants.NodeType;
 
 public class ProgramExecutor {
 	
 	private UIFrame _frame;
+	private GraphParser gp;
+	private boolean bCustomParser = false;
 	
 	// default constructor
 	public ProgramExecutor(){
@@ -36,14 +40,21 @@ public class ProgramExecutor {
 	// executes the functions required to create the Execution Time Equation and resulting flow graph
 	public void execute(File cfgFile, File codeFile, File saveFolder, String flowGraphFileName, UIFrame frame){
 		Graph gControlFlowGraph;
+		gp = new GraphParser();
 		_frame = frame;
 		
 		clearTextFromFrame();
 		// File paths might have to be changed for linux
 		if (codeFile.getName().endsWith(".txt"))
-			gControlFlowGraph = new GraphParser().Parse(codeFile);
-		else 
+		{
+			gControlFlowGraph = gp.Parse(codeFile);
+			bCustomParser = true;
+		}
+		else
+		{
 			gControlFlowGraph = readGraphMLFile(cfgFile, codeFile);
+			bCustomParser = false;
+		}
 		reduceGraph(gControlFlowGraph);
 		analyzeGraph(gControlFlowGraph);
 		gControlFlowGraph.curveEdges();
@@ -158,10 +169,14 @@ public class ProgramExecutor {
 	// and each Edge corresponds to a single flow with cost = cost of the consolidated operations
 	// Note: It should be merging vertex of type = instruction, but this is more or less equivalent
 	public void reduceGraph(Graph g){
+		HashMap<String, String> mVariable = gp.getVariables();
 		ArrayList<Vertex> lstVertices = new ArrayList<Vertex>();
 		for(Vertex v : g.getVerticesList()) {
 			lstVertices.add(v);
+			if (!mVariable.containsKey("C" + v.getLabel()))
+				mVariable.put("C" + v.getLabel(), "1");	// All time costs are assumed to be 1, but can be changed before graph reduction
 		}
+		
 		for(Vertex v : lstVertices)
 		{
 			if(v.getInEdgeList().size()==1 && v.getOutEdgeList().size()==1 
@@ -182,10 +197,34 @@ public class ProgramExecutor {
 				g.deleteVertex(v);
 			}
 		}
+		if (bCustomParser)
+		{
+			for (Vertex v : lstVertices)
+			{
+				String sTimecost = "";
+				if (v.getType().equals(NodeType.BRANCH_MERGE.toString()))
+				{
+					// Branch merge should only have 1 outgoing edge
+					for (Edge e : v.getInEdgeList())
+					{
+						Edge newEdge = new Edge(e.getSource(), v.getOutEdgeList().get(0).getTarget(), v.getInEdgeList().get(0).getLabel());
+						sTimecost = v.getOutEdgeList().get(0).getTimecost();
+						sTimecost = sTimecost.length() == 0 ? "0" : sTimecost;
+						if(e.getTimecost().equals(""))
+							newEdge.setTimecost("C" + v.getLabel() + "+" + sTimecost);
+						else
+							newEdge.setTimecost(e.getTimecost() + "+" + sTimecost);
+						newEdge.setFlowType(e.getFlowType());
+						g.addEdge(newEdge);
+						g.deleteVertex(v);
+					}
+				}
+			}
+		}
+
 		//Put Start node in first
 		Vertex start = g.getVertexByLabel("START");
 		g.getVerticesList().remove(start);
-
 		g.getVerticesList().add(0, start);
 		//Reassign the edge label
 		int k=1;
@@ -250,9 +289,6 @@ public class ProgramExecutor {
 			pr.waitFor();
 			Desktop.getDesktop().open(new File(saveFolder + "\\" + flowGraphFileName + ".svg"));
 		}
-		catch(IOException e){
-			e.printStackTrace();
-		}
 		catch (Exception e)
 		{
 			e.printStackTrace();
@@ -274,7 +310,6 @@ public class ProgramExecutor {
 		eFlow.setValue("1");
 		eFlow.setVisible(false);
 		pGraph.addEdge(eFlow);
-		
 		
 		// Find 1 cycle per loop, set 1 edge in the cycle found as independent flow
 		do
@@ -375,10 +410,16 @@ public class ProgramExecutor {
 				appendLineToFrame("C"+e.getLabel() + " = (" + e.getTimecost()+")*"+e.getLabel());
 			    totalCost = totalCost+subCost;
 			}	
-		appendLineToFrame(" ");
-		appendLineToFrame("C="+totalCost);
-		appendLineToFrame(" ");
-		String[] tokens = totalCost.split("e");
+		appendLineToFrame("\nC="+totalCost+"\n");
+
+		// set known value of e
+		for (Edge e : pGraph.getEdgeList())
+		{	
+			if (e.getEquation() != "")
+				gp.getVariables().put(e.getLabel(), e.getEquation());
+		}
+		
+		/*String[] tokens = totalCost.split("e");
 		int n=tokens.length;
 		int cValues[] = new int[n];
 		for (int i=0;i< n;i++)
@@ -415,111 +456,145 @@ public class ProgramExecutor {
 			    i++;
 			}
 		}	
-		appendLineToFrame("C="+totalCost);
-		String finalCost = "";
+		appendLineToFrame("C="+totalCost);*/
+
 		//Print final cost equation
-		GraphParser gp = new GraphParser();
 		try {
-			finalCost = gp.Simplify(gp.EvalExprAsString(totalCost));
+			appendLineToFrame("\nC=" + gp.Simplify(gp.EvalExprAsString(totalCost)));
 		} catch (Exception e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
+			System.out.println("Cost equation parsing: " + e1.getMessage());
 		}
-
-		appendLineToFrame(" ");
-		appendLineToFrame("C="+finalCost);
-		//find the vertices that begin each loop (if any)
-		Map<String,ArrayList<Vertex>> loopVertices = new HashMap<String,ArrayList<Vertex>>();
-
-		for(ArrayList<Vertex> cycle : lstCycleVertex){
-			if(!cycle.get(0).equals("EXIT")){
-	            if(cycle.get(0).getLooptype()!=null) {
-	            	if(!loopVertices.containsKey(cycle.get(0).getLabel())){
-	            		loopVertices.put(cycle.get(0).getLabel(), cycle);
-	            	}
-	            	else if(loopVertices.get(cycle.get(0).getLabel()).size()<cycle.size()){
-	            		loopVertices.remove(cycle.get(0).getLabel());
-	            		loopVertices.put(cycle.get(0).getLabel(), cycle);
-	            	}
-	            }
-			}
-
-		}
-		// save strings containing order of vertices in each loop with key of starting vertex
-		Map<String,String> loopstr=new HashMap<String,String>();
-		for(String key : loopVertices.keySet()){ 
-			StringBuffer s = new StringBuffer();
-			for(Vertex v : loopVertices.get(key)){
-				s.append(v.getLabel()+" ");
-			}
-			loopstr.put(key, s.toString());
-		}
-		ArrayList<String> cycleStr = new ArrayList<String>();
-		for(ArrayList<Vertex> cycle : lstCycleVertex){
-			StringBuffer s = new StringBuffer();
-			for(Vertex v : cycle) s.append(v.getLabel()+" ");
-			cycleStr.add(s.toString());
-		}
-		int index=0;
-		for(ArrayList<Vertex> cycle : lstCycleVertex){
-			if(!cycle.get(0).equals("END")){
-				 Edge flow = independentEdges.get(index);
-		         Vertex c=null; // condition predecessors vertex of e, 
-                                // if->A, e=if->A, c=if
-		         if(flow.getSource().getLabel().equals(cycle.get(0).getLabel())){
-		        	 c=cycle.get(0);
-		         }
-		         else {
-		        	 c=cycle.get(1);
-		         }
-		         
-		         if(c.getLooptype()!=null){
-		        	 for(Vertex vertex: cycle){
-		        		 vertex.setLooptype(c.getLooptype());
-		        	 }
-		         }
-		         
-//		         for(String key : loopstr.keySet()){
-//		        	 if(loopstr.get(key).contains(cycleStr.get(index))) {
-//		        		 flow.setLooptype(loopVertices.get(key).get(0).GetLooptype());
-//		        		 break;
-//		        	 }
-//		         }
-		         if(c.getLooptype()!=null){
-		        	 flow.setLooptype(c.getLooptype());
-		         }
-		         if(c.getType() !=null && !c.getType().equals("decision")){
-		        	 flow.setCondition(c.getType());
-		         }
-			} 
-
-
-			index++;
-		}
-		appendLineToFrame("");
-		for(Edge e : independentEdges) 
-			if(e.getVisible()){
-				if(e.getCondition()!=null && e.getLoopType()!=null){
-
-					appendLineToFrame(e.getLabel()+ ": " + e.getCondition()+" statement in "+e.getLoopType() + " loop");
-					if(e.getCondition().equals("if") && e.getLoopType().equals("for"))
-						appendLineToFrame("      Binomial Distribution.");
-					else if(e.getCondition().equals("if") && e.getLoopType().equals("while"))
-						appendLineToFrame("      Poisson Distribution.");
-				}
-				else if(e.getLoopType()!=null){
-					appendLineToFrame(e.getLabel()+ ": " + e.getLoopType() + " loop");
-					if(e.getLoopType().equals("for"))
-						appendLineToFrame("      Deterministic.");
-					if(e.getLoopType().equals("while"))
-						appendLineToFrame("      Modified Geometric Distribution.");
-				}
-				else {
-					appendLineToFrame(e.getLabel()+ ": " + e.getCondition() + " statement");
-					if(e.getCondition().equals("if"))
-						appendLineToFrame("      Bernoulli Distribution.");
+		
+		// From here it is difficult to reconcile the difference between GraphParser and GraphML parser without some major rewriting
+		// I'll keep them separate
+		if (!bCustomParser)
+		{
+			//find the vertices that begin each loop (if any)
+			Map<String,ArrayList<Vertex>> loopVertices = new HashMap<String,ArrayList<Vertex>>();
+	
+			for(ArrayList<Vertex> cycle : lstCycleVertex){
+				if(!cycle.get(0).equals("EXIT")){
+		            if(cycle.get(0).getLooptype()!=null) {
+		            	if(!loopVertices.containsKey(cycle.get(0).getLabel())){
+		            		loopVertices.put(cycle.get(0).getLabel(), cycle);
+		            	}
+		            	else if(loopVertices.get(cycle.get(0).getLabel()).size()<cycle.size()){
+		            		loopVertices.remove(cycle.get(0).getLabel());
+		            		loopVertices.put(cycle.get(0).getLabel(), cycle);
+		            	}
+		            }
 				}
 			}
+			// save strings containing order of vertices in each loop with key of starting vertex
+			Map<String,String> loopstr=new HashMap<String,String>();
+			for(String key : loopVertices.keySet()){ 
+				StringBuffer s = new StringBuffer();
+				for(Vertex v : loopVertices.get(key)){
+					s.append(v.getLabel()+" ");
+				}
+				loopstr.put(key, s.toString());
+			}
+			ArrayList<String> cycleStr = new ArrayList<String>();
+			for(ArrayList<Vertex> cycle : lstCycleVertex){
+				StringBuffer s = new StringBuffer();
+				for(Vertex v : cycle) s.append(v.getLabel()+" ");
+				cycleStr.add(s.toString());
+			}
+			int index=0;
+			for(ArrayList<Vertex> cycle : lstCycleVertex){
+				if(!cycle.get(0).equals("END")){
+					 Edge flow = independentEdges.get(index);
+			         Vertex c=null; // condition predecessors vertex of e, 
+	                                // if->A, e=if->A, c=if
+			         if(flow.getSource().getLabel().equals(cycle.get(0).getLabel())){
+			        	 c=cycle.get(0);
+			         }
+			         else {
+			        	 c=cycle.get(1);
+			         }
+			         
+			         if(c.getLooptype()!=null){
+			        	 for(Vertex vertex: cycle){
+			        		 vertex.setLooptype(c.getLooptype());
+			        	 }
+			         }
+			         
+	//		         for(String key : loopstr.keySet()){
+	//		        	 if(loopstr.get(key).contains(cycleStr.get(index))) {
+	//		        		 flow.setLooptype(loopVertices.get(key).get(0).GetLooptype());
+	//		        		 break;
+	//		        	 }
+	//		         }
+			         if(c.getLooptype()!=null){
+			        	 flow.setLooptype(c.getLooptype());
+			         }
+			         if(c.getType() !=null && !c.getType().equals("decision")){
+			        	 flow.setCondition(c.getType());
+			         }
+				} 
+	
+	
+				index++;
+			}
+			appendLineToFrame("");
+			for(Edge e : independentEdges) 
+			{
+				if(e.getVisible()){
+					if(e.getCondition()!=null && e.getLoopType()!=null){
+	
+						appendLineToFrame(e.getLabel()+ ": " + e.getCondition()+" statement in "+e.getLoopType() + " loop");
+						if(e.getCondition().equals("if") && e.getLoopType().equals("for"))
+							appendLineToFrame("      Binomial Distribution.");
+						else if(e.getCondition().equals("if") && e.getLoopType().equals("while"))
+							appendLineToFrame("      Poisson Distribution.");
+					}
+					else if(e.getLoopType()!=null){
+						appendLineToFrame(e.getLabel()+ ": " + e.getLoopType() + " loop");
+						if(e.getLoopType().equals("for"))
+							appendLineToFrame("      Deterministic.");
+						if(e.getLoopType().equals("while"))
+							appendLineToFrame("      Modified Geometric Distribution.");
+					}
+					else {
+						appendLineToFrame(e.getLabel()+ ": " + e.getCondition() + " statement");
+						if(e.getCondition().equals("if"))
+							appendLineToFrame("      Bernoulli Distribution.");
+					}
+				}
+			}
+		}
+		else
+		{
+			FlowType ft;
+			for (Edge e : independentEdges)
+			{
+				ft = e.getFlowType();
+				if (ft != null)
+				{
+					appendLineToFrame(e.getLabel() + ": " + ft.toString());
+					if (ft == FlowType.FOR)
+					{
+						appendLineToFrame("      Deterministic.");	// should use a fixed size font...
+					}
+					else if (ft == FlowType.WHILE)
+					{
+						appendLineToFrame("      Modified geometric distribution.");
+					}
+					else if (ft == FlowType.IF || ft == FlowType.ELSE)
+					{
+						appendLineToFrame("      Bernoulli distribution.");
+					}
+					else if (ft == FlowType.IF_INSIDE_FOR_TRUE ||  ft == FlowType.IF_INSIDE_FOR_FALSE)
+					{
+						appendLineToFrame("      Binomial distribution.");
+					}
+					else if (ft == FlowType.IF_INSIDE_WHILE_TRUE ||  ft == FlowType.IF_INSIDE_WHILE_FALSE)
+					{
+						appendLineToFrame("      Poisson distribution.");
+					}
+				}
+			}
+		}
 	}
 	
 	// adds a new line to the output display of the frame

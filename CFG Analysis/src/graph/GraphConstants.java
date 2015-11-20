@@ -82,6 +82,8 @@ public final class GraphConstants {
 		MUL ('*'),
 		POW ('^'),
 		EQN ('='),
+		GT ('>'),
+		LT ('<'),
 		NEQ ('!');
 		
 		private final char OperatorChar;

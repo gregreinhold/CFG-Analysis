@@ -17,6 +17,10 @@ public class GraphParser
 {
 	HashMap<String, String> mVariable = new HashMap<String, String>();
 	
+	public HashMap<String, String> getVariables()
+	{
+		return mVariable;
+	}
 	private LinkedList<Token> Tokenize(String s) throws Exception
 	{
 		char c;
@@ -27,7 +31,8 @@ public class GraphParser
 		LinkedList<Token> lstToken = new LinkedList<Token>();
 		TokenType tokenType;
 		Token tToken;
-
+		s = s.trim();
+		
 		// # is comment
 		if (s.length() > 0 && s.charAt(0) == '#')
 			return lstToken;
@@ -113,7 +118,7 @@ public class GraphParser
 		FlowType flowType = null;
 		String sAssignVar, sAssignVal;
 		String sUpperBound, sLowerBound;
-		String sExpr, sLine;
+		String sExpr, sLine, sTimeCost;
 
 		Graph gGraph = new Graph();
 		Vertex vNewVertex = null;
@@ -176,6 +181,7 @@ public class GraphParser
 							nodeType = NodeType.IF_BRANCH;
 							lstExpectedToken.clear();
 							lstExpectedToken.add(TokenType.VARIABLE);
+							lstExpectedToken.add(TokenType.EXPR);
 							lstLineKeyword.add(Keyword.IF);
 							lstKeyword.add(Keyword.IF);
 						}
@@ -335,7 +341,7 @@ public class GraphParser
 				if (lstLineKeyword.peekLast() == Keyword.ASSIGN)
 					mVariable.put(sAssignVar, sAssignVal.trim());
 				
-				// Add node
+				// Add node				
 				if (sExpr.trim().length() > 0)
 				{
 					if (nodeType == NodeType.BRANCH_MERGE)
@@ -353,9 +359,25 @@ public class GraphParser
 						eNewEdge = new Edge(vLastVertex, vNewVertex, "e" + iEdge);
 						eNewEdge.setFlowType(flowType);
 						gGraph.addEdge(eNewEdge);	// Last vertex to merge vertex
+						
+						// some adjustment to fix some bug, too late for a rewrite
+						if (lstKeyword.peekLast() != Keyword.ELSE)
+						{
+							lstKeyword.removeLast();
+							lstKeyword.add(Keyword.ELSE);	// this is the else branch without else block
+							flowType = getFlowType(lstKeyword);
+						}
+						else
+						{
+							lstKeyword.removeLast();
+							lstKeyword.add(Keyword.IF);
+							flowType = getFlowType(lstKeyword);
+						}
 						eNewEdge = new Edge(lstBranchVertex.removeLast(), vNewVertex, "e" + (iEdge + 1));
 						eNewEdge.setFlowType(flowType);
 						gGraph.addEdge(eNewEdge);	// If branch vertex to merge vertex
+						
+						mVariable.put("C" + vNewVertex.getLabel(), "0");
 						
 						lstKeyword.removeLast();
 						iEdge += 2;
@@ -837,7 +859,7 @@ public class GraphParser
 
 	// This gets the type of flow of a certain edge
 	// Only a limited set of combination is allowed
-	private FlowType getFlowType(LinkedList<Keyword> lstKW)	
+	private FlowType getFlowType(LinkedList<Keyword> lstKW)
 	{
 		FlowType et = null;
 		Keyword kw;
@@ -846,7 +868,7 @@ public class GraphParser
 			kw = lstKW.get(i);
 			if (et == null)
 			{
-				if (kw == Keyword.IF)	// The edge leading to if branch does not count as inside the if
+				if (kw == Keyword.IF)
 					et = FlowType.IF;
 				else if (kw == Keyword.ELSE)
 					et = FlowType.ELSE;
@@ -898,8 +920,8 @@ public class GraphParser
 	// We are only allowing single character operator to simplify parsing
 	private boolean IsOperator(char c)
 	{
-		if (c == OperatorType.ADD.Char() || c == OperatorType.SUB.Char() ||
-			c == OperatorType.DIV.Char() || c == OperatorType.MUL.Char() ||
+		if (c == OperatorType.ADD.Char() || c == OperatorType.SUB.Char() || c == OperatorType.LT.Char() ||
+			c == OperatorType.DIV.Char() || c == OperatorType.MUL.Char() || c == OperatorType.GT.Char() ||
 			c == OperatorType.POW.Char() || c == OperatorType.EQN.Char() || c == OperatorType.NEQ.Char())
 			return true;
 		
@@ -930,30 +952,21 @@ public class GraphParser
 		return sb.toString().trim();
 	}
 	
-	public int C(int n, int k) throws Exception
-	{
-		int iFactN = 1;
-		int iFactK = 1;
-		int iFactNK = 1;
-		
-		if (n >= k)
-		{
-			for (int i = 2; i <= n; i++)
-			{
-				iFactN *= i;
-				if (i == k)
-					iFactK = iFactN;
-				if (i == n - k)
-					iFactNK = iFactN;
-			}
-		}
-		else throw new Exception("n < k");
-		
-		return iFactN / (iFactK * iFactNK);
-	}
+	public int C(int n, int k)
+    {
+		int r = 1;
+        if (k > n)
+            return 0;
+        for (int d = 1; d <= k; d++)
+        {
+            r *= n--;
+            r /= d;
+        }
+        return r;
+    }
 	
 	// DEBUG PRINT
-	private void PrintVariables(HashMap<String, String> mVar)
+	public void PrintVariables(HashMap<String, String> mVar)
 	{
 		System.out.println("\n*** VARIABLES ***");
 		for (String key : mVar.keySet())
