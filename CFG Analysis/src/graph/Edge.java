@@ -28,15 +28,18 @@ public class Edge
 		source = pSource;
 		target = pTarget;
 		label = pLabel;
-		initTimecost(pSource,pTarget);
+		//initTimecost(pSource,pTarget);
 	}
 	
     public void initTimecost(Vertex pSource, Vertex pTarget){
     	if(timecost.equals(""))
-		if(pTarget.getLabel().equals("EXIT") || pTarget.getLabel().equals("START")) timecost="";
-		else if(pSource.getLabel().equals("START")) timecost="C"+pTarget.getLabel();
+		if(pTarget.getLabel().equals("EXIT") || pTarget.getLabel().equals("START") || pTarget.getType().equals("return")) 
+			timecost = "";
+		else if(pSource.getLabel().equals("START"))
+			timecost = "C"+pTarget.getLabel();
     	// use line# to determine the order of instruction
-		else if(Integer.parseInt(pTarget.getLabel())<Integer.parseInt(pSource.getLabel())) timecost="";
+		else if(Integer.parseInt(pTarget.getLabel()) < Integer.parseInt(pSource.getLabel()))
+			timecost="";
 		else timecost="C"+pTarget.getLabel();
 	}
   

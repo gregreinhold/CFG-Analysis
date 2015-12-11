@@ -903,7 +903,7 @@ public class GraphParser
 		return s;
 	}
 	
-	private boolean IsNumeric(String s)
+	public boolean IsNumeric(String s)
 	{
 		boolean bReturn = true;
 		try

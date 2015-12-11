@@ -62,7 +62,6 @@ public class ProgramExecutor {
 		gControlFlowGraph.curveEdges();
 		new DrawingApp(gControlFlowGraph);
 		generateDot(gControlFlowGraph, saveFolder, flowGraphFileName);
-		gControlFlowGraph.PrintGraph(false, true);		// DEBUG PRINT
 	}
 	
 
@@ -73,6 +72,8 @@ public class ProgramExecutor {
 		// saves it alongside its corresponding line number.
 		Map<String,String> lineloop = new HashMap<String,String>();
         Map<String,String> lineif = new HashMap<String,String>();
+        ArrayList<String> aLines = new ArrayList<String>();
+        aLines.add("");	// index starts at 1
 		try{
 			BufferedReader br = new BufferedReader(new FileReader(codeFile));
 			String line=null;
@@ -81,6 +82,7 @@ public class ProgramExecutor {
 				if(line.contains("for")) lineloop.put(lineNumber+"", "for");
 				if(line.contains("while")) lineloop.put(lineNumber+"", "while");
 				if(line.contains("if")) lineif.put(lineNumber+"", "if");
+				aLines.add(line);
 				lineNumber++;
 			}
 			br.close();
@@ -148,9 +150,11 @@ public class ProgramExecutor {
 				}				
 			}
 			Vertex newv = new Vertex(strName, strLabel, strType, intX, intY);
+			if (gp.IsNumeric(strLabel))
+				newv.setExpr(aLines.get(Integer.parseInt(strLabel)));
+			gGraph.addVertex(newv);
 			if(lineloop.containsKey(newv.getLabel())) newv.setLooptype(lineloop.get(newv.getLabel()));
 			if(lineif.containsKey(newv.getLabel())) newv.setType(lineif.get(newv.getLabel()));
-			gGraph.addVertex(newv);
 		}
 		
 		lstNode = doc.getElementsByTagName("edge");
@@ -173,62 +177,35 @@ public class ProgramExecutor {
 	public void reduceGraph(Graph g){
 		HashMap<String, String> mVariable = gp.getVariables();
 		ArrayList<Vertex> lstVertices = new ArrayList<Vertex>();
+		
 		for(Vertex v : g.getVerticesList()) {
 			lstVertices.add(v);
 			if (!mVariable.containsKey("C" + v.getLabel()))
 				mVariable.put("C" + v.getLabel(), "1");	// All time costs are assumed to be 1, but can be changed before graph reduction
 		}
 		
+		Edge newEdge = null;
+		Edge eIn, eOut;
 		for(Vertex v : lstVertices)
 		{
-			if(v.getInEdgeList().size()==1 && v.getOutEdgeList().size()==1 
-					&& !v.getLabel().equals("START") && !v.getLabel().equals("EXIT")
-					&& ! v.getInEdgeList().get(0).getSource().getLabel().equals(
-							v.getOutEdgeList().get(0).getTarget().getLabel()))
-				    // not the only node in the loop
+			if(v.getInEdgeList().size() == 1 && v.getOutEdgeList().size() == 1 && !v.getLabel().equals("START") && !v.getLabel().equals("EXIT"))
 			{
-				Edge lastAddedEdge = g.getEdgeList().get(g.getEdgeList().size()-1);
-				Edge newEdge = null;
-				if(lastAddedEdge.getTarget().equals(v)){
-					newEdge = new Edge(lastAddedEdge.getSource(),v.getOutEdgeList().get(0).getTarget(),lastAddedEdge.getLabel());
-					newEdge.setTimecost(lastAddedEdge.getTimecost()+" + "+"C"+v.getLabel());
-					newEdge.setFlowType(lastAddedEdge.getFlowType());
-				}
-				else{
-					newEdge = new Edge(v.getInEdgeList().get(0).getSource(),v.getOutEdgeList().get(0).getTarget(),
-							v.getInEdgeList().get(0).getLabel());
-//					if(newEdge.getTimecost().equals("")){
-						newEdge.setTimecost("C"+v.getLabel());
-//					} else {
-//						newEdge.setTimecost("C"+v.getLabel()+" + "+newEdge.getTimecost());
-//					}
-					newEdge.setFlowType(v.getInEdgeList().get(0).getFlowType());
-				}
-				g.addEdge(newEdge);
-				g.deleteVertex(v);
-			}
-		}
-		if (bCustomParser)
-		{
-			for (Vertex v : lstVertices)
-			{
-				String sTimecost = "";
-				if (v.getType().equals(NodeType.BRANCH_MERGE.toString()))
+				if (v.getInEdgeList().get(0).getSource().getLabel().equals(v.getOutEdgeList().get(0).getTarget().getLabel()))
 				{
-					// Branch merge should only have 1 outgoing edge
-					for (Edge e : v.getInEdgeList())
-					{
-						Edge newEdge = new Edge(e.getSource(), v.getOutEdgeList().get(0).getTarget(), v.getInEdgeList().get(0).getLabel());
-						sTimecost = v.getOutEdgeList().get(0).getTimecost();
-						sTimecost = sTimecost.length() == 0 ? "0" : sTimecost;
-						if(e.getTimecost().equals(""))
-							newEdge.setTimecost("C" + v.getLabel() + "+" + sTimecost);
-						else
-							newEdge.setTimecost(e.getTimecost() + "+" + sTimecost);
-						newEdge.setFlowType(e.getFlowType());
-						g.addEdge(newEdge);
-						g.deleteVertex(v);
-					}
+					v.getInEdgeList().get(0).setTimecost(trim('+', v.getInEdgeList().get(0).getTimecost() + "+" + "C" + v.getLabel()));
+				}
+				else
+				{
+				    // not the only node in the loop
+					eIn = v.getInEdgeList().get(0);
+					eOut = v.getOutEdgeList().get(0);
+					newEdge = new Edge(eIn.getSource(), eOut.getTarget(), "");	// label gets reassigned later
+					if (!v.getType().equals("return"))
+						newEdge.setTimecost(trim('+', trim('+', eIn.getTimecost() + "+" + eOut.getTimecost()) + "+" + "C" + v.getLabel()));
+					else 
+						newEdge.setTimecost(trim('+', trim('+', eIn.getTimecost() + "+" + eOut.getTimecost())));
+					g.addEdge(newEdge);
+					g.deleteVertex(v);
 				}
 			}
 		}
@@ -247,6 +224,10 @@ public class ProgramExecutor {
 					if(e.getTimecost().equals("")) e.setTimecost("0");
 				}
 			}
+		}
+		for (Edge e : g.getEdgeList())
+		{
+			System.out.println(e.getLabel() + " : " + e.getTimecost());
 		}
 		Collections.sort(g.getEdgeList(), new Comparator<Edge>(){
 			public int compare(Edge a, Edge b){
@@ -340,19 +321,6 @@ public class ProgramExecutor {
 			pGraph.findCycle(vEnd, lstVertex);
 		}
 		while (lstVertex.size() != 0);
-		
-		// *Debug print
-		/*String temp;
-		for (ArrayList<Vertex> l : lstCycleVertex)
-		{
-			temp = "Cycle: ";
-			for (Vertex v : l)
-			{
-				temp += v.getLabel() + ", ";
-			}
-			appendLineToFrame(temp.substring(0, temp.length() - 2));
-		}
-		appendLineToFrame("");*/
 		
 		// Generate dependent flow equations
 		String strEquation;
@@ -463,12 +431,6 @@ public class ProgramExecutor {
 			        	 }
 			         }
 			         
-	//		         for(String key : loopstr.keySet()){
-	//		        	 if(loopstr.get(key).contains(cycleStr.get(index))) {
-	//		        		 flow.setLooptype(loopVertices.get(key).get(0).GetLooptype());
-	//		        		 break;
-	//		        	 }
-	//		         }
 			         if(c.getLooptype()!=null){
 			        	 flow.setLooptype(c.getLooptype());
 			         }
@@ -542,14 +504,27 @@ public class ProgramExecutor {
 
 		// If an edge is a loop and source vertex is decision/branch, add 2 to the time cost to account for increment/decrement and condition test
 		// Note that this assumes that for/while loop always increment/decrement, which they don't have to.
+		// The getExpr returns the line of code for the vertex.
 		for (Vertex v : pGraph.getVerticesList())
 		{
-			if (v.getType() != null && v.getOutEdgeList().size() > 0)
+			if ((v.getExpr() != null && (v.getExpr().contains("for") || v.getExpr().contains("while"))) ||
+				(v.getType() != null && (v.getType().equals(Keyword.FOR.toString()) || v.getType().equals(Keyword.WHILE.toString()))))
 			{
-				if (v.getType().toUpperCase().equals("DECISION") || v.getType().equals(Keyword.FOR.toString()) || v.getType().equals(Keyword.WHILE.toString()))
+				for (Edge e : v.getOutEdgeList())
 				{
-					eFlow = v.getOutEdgeList().get(0);
-					eFlow.setTimecost(eFlow.getTimecost().length() > 0 ? eFlow.getTimecost() + "+2" : "2");
+					// there should really be EXACTLY 1 edge going into the loop block from the loop branch vertex
+					// and EXACTLY 1 edge going out of the loop branch vertex
+					// This code effectively tries to add a cost 2 vertex into the loop block
+					// the CFG factory sometimes reduces the graph too much so I don't know there is any guarantee the above will always happen
+					// *** with this implementation of storing whether an edge is in a loop, it is difficult to do anything
+					if (e.getLoopType() != null)
+					{	// this edge goes into the loop block, this gets multiplied by e
+						e.setTimecost(trim('+', e.getTimecost() + "+2"));
+					}
+					else
+					{	// this edge exits the loop and IS NOT part of the loop, so the +1 should not get multiplied by e of the for loop
+						e.setTimecost(trim('+', e.getTimecost() + "+1"));
+					}
 				}
 			}
 		}
@@ -598,6 +573,33 @@ public class ProgramExecutor {
 		if(_frame!=null){
 			_frame.resetOutputDisplay();
 		}
+	}
+	
+	private String trim(char cTrim, String s)
+	{
+		int idx = 0;
+		if (s.length() != 0)
+		{
+			for (int i = 0; i < s.length(); i++)
+			{
+				if (s.charAt(i) != cTrim)
+				{
+					idx = i;
+					break;
+				}
+			}
+			s = s.substring(idx, s.length());
+			for (int i = s.length() - 1; i > -1; i--)
+			{
+				if (s.charAt(i) != cTrim)
+				{
+					idx = i + 1;
+					break;
+				}
+			}
+			s = s.substring(0, idx);
+		}
+		return s;
 	}
 	
 	public static void main(String[] args)
