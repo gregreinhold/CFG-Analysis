@@ -26,6 +26,7 @@ import java.util.Map;
 
 import graph.*;
 import graph.GraphConstants.FlowType;
+import graph.GraphConstants.Keyword;
 import graph.GraphConstants.NodeType;
 
 public class ProgramExecutor {
@@ -541,15 +542,14 @@ public class ProgramExecutor {
 
 		// If an edge is a loop and source vertex is decision/branch, add 2 to the time cost to account for increment/decrement and condition test
 		// Note that this assumes that for/while loop always increment/decrement, which they don't have to.
-		LinkedList<String> lstTemp = new LinkedList<String>();
-		for (Edge e : pGraph.getEdgeList())
+		for (Vertex v : pGraph.getVerticesList())
 		{
-			if (!lstTemp.contains(e.getSource().getLabel()) && e.getLoopType() != null && e.getSource().getType() != null)
+			if (v.getType() != null && v.getOutEdgeList().size() > 0)
 			{
-				if (e.getSource().getType().toUpperCase().equals("DECISION"))
+				if (v.getType().toUpperCase().equals("DECISION") || v.getType().equals(Keyword.FOR.toString()) || v.getType().equals(Keyword.WHILE.toString()))
 				{
-					lstTemp.add(e.getSource().getLabel());
-					e.setTimecost(e.getTimecost() + "+2");
+					eFlow = v.getOutEdgeList().get(0);
+					eFlow.setTimecost(eFlow.getTimecost().length() > 0 ? eFlow.getTimecost() + "+2" : "2");
 				}
 			}
 		}
