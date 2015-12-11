@@ -79,9 +79,12 @@ public class ProgramExecutor {
 			String line=null;
 			int lineNumber=1;
 			while((line=br.readLine()) !=null){
-				if(line.contains("for")) lineloop.put(lineNumber+"", "for");
-				if(line.contains("while")) lineloop.put(lineNumber+"", "while");
-				if(line.contains("if")) lineif.put(lineNumber+"", "if");
+				if(line.contains("for"))
+					lineloop.put(lineNumber+"", "for");
+				if(line.contains("while"))
+					lineloop.put(lineNumber+"", "while");
+				if(line.contains("if"))
+					lineif.put(lineNumber+"", "if");
 				aLines.add(line);
 				lineNumber++;
 			}
@@ -507,8 +510,8 @@ public class ProgramExecutor {
 		// The getExpr returns the line of code for the vertex.
 		for (Vertex v : pGraph.getVerticesList())
 		{
-			if ((v.getExpr() != null && (v.getExpr().contains("for") || v.getExpr().contains("while"))) ||
-				(v.getType() != null && (v.getType().equals(Keyword.FOR.toString()) || v.getType().equals(Keyword.WHILE.toString()))))
+			if ((v.getType() != null && (v.getType().toUpperCase().equals(Keyword.FOR.toString()) || v.getType().toUpperCase().equals(Keyword.WHILE.toString()))) || 
+				(v.getExpr() != null && (v.getExpr().contains("for") || v.getExpr().contains("while") || v.getExpr().contains("if"))))
 			{
 				for (Edge e : v.getOutEdgeList())
 				{
@@ -517,7 +520,7 @@ public class ProgramExecutor {
 					// This code effectively tries to add a cost 2 vertex into the loop block
 					// the CFG factory sometimes reduces the graph too much so I don't know there is any guarantee the above will always happen
 					// *** with this implementation of storing whether an edge is in a loop, it is difficult to do anything
-					if (e.getLoopType() != null)
+					if (e.getLoopType() != null && (v.getExpr() != null && (v.getExpr().contains("for") || v.getExpr().contains("while"))))
 					{	// this edge goes into the loop block, this gets multiplied by e
 						e.setTimecost(trim('+', e.getTimecost() + "+2"));
 					}
