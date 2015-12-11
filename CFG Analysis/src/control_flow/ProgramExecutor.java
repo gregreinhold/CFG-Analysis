@@ -185,14 +185,23 @@ public class ProgramExecutor {
 							v.getOutEdgeList().get(0).getTarget().getLabel()))
 				    // not the only node in the loop
 			{
-				Edge newEdge = new Edge(v.getInEdgeList().get(0).getSource(),v.getOutEdgeList().get(0).getTarget(),
-						v.getInEdgeList().get(0).getLabel());
-				if(newEdge.getTimecost().equals("")){
-					newEdge.setTimecost("C"+v.getLabel());
-				} else {
-					newEdge.setTimecost("C"+v.getLabel()+" + "+newEdge.getTimecost());
+				Edge lastAddedEdge = g.getEdgeList().get(g.getEdgeList().size()-1);
+				Edge newEdge = null;
+				if(lastAddedEdge.getTarget().equals(v)){
+					newEdge = new Edge(lastAddedEdge.getSource(),v.getOutEdgeList().get(0).getTarget(),lastAddedEdge.getLabel());
+					newEdge.setTimecost(lastAddedEdge.getTimecost()+" + "+"C"+v.getLabel());
+					newEdge.setFlowType(lastAddedEdge.getFlowType());
 				}
-				newEdge.setFlowType(v.getInEdgeList().get(0).getFlowType());
+				else{
+					newEdge = new Edge(v.getInEdgeList().get(0).getSource(),v.getOutEdgeList().get(0).getTarget(),
+							v.getInEdgeList().get(0).getLabel());
+//					if(newEdge.getTimecost().equals("")){
+						newEdge.setTimecost("C"+v.getLabel());
+//					} else {
+//						newEdge.setTimecost("C"+v.getLabel()+" + "+newEdge.getTimecost());
+//					}
+					newEdge.setFlowType(v.getInEdgeList().get(0).getFlowType());
+				}
 				g.addEdge(newEdge);
 				g.deleteVertex(v);
 			}
