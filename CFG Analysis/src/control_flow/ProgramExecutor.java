@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.Map;
 
 import graph.*;
@@ -340,7 +341,7 @@ public class ProgramExecutor {
 		while (lstVertex.size() != 0);
 		
 		// *Debug print
-		String temp;
+		/*String temp;
 		for (ArrayList<Vertex> l : lstCycleVertex)
 		{
 			temp = "Cycle: ";
@@ -350,7 +351,7 @@ public class ProgramExecutor {
 			}
 			appendLineToFrame(temp.substring(0, temp.length() - 2));
 		}
-		appendLineToFrame("");
+		appendLineToFrame("");*/
 		
 		// Generate dependent flow equations
 		String strEquation;
@@ -374,7 +375,6 @@ public class ProgramExecutor {
 			else
 			{
 				appendLineToFrame("ERROR: Independent flow not found");
-				System.out.println("ERROR: Independent flow not found");
 				return;
 			}
 
@@ -399,6 +399,7 @@ public class ProgramExecutor {
 			}
 		}
 		pGraph.resetGraph(false);
+		
 		// Print equation of all flows
 		for (Edge e : pGraph.getEdgeList())
 		{
@@ -406,73 +407,6 @@ public class ProgramExecutor {
 				appendLineToFrame(e.getLabel() + " = " + e.getEquation());
 		}
 		appendLineToFrame("");
-		String totalCost = "";
-		String subCost = "";
-		//Print Edge Time cost
-		for (Edge e : pGraph.getEdgeList())
-			if(e.getVisible())
-			{
-				if(subCost == "")
-					subCost = "(" + e.getTimecost()+")*"+e.getLabel();
-				else
-					subCost = "+(" + e.getTimecost()+")*"+e.getLabel();
-				appendLineToFrame("C"+e.getLabel() + " = (" + e.getTimecost()+")*"+e.getLabel());
-			    totalCost = totalCost+subCost;
-			}	
-		appendLineToFrame("\nC="+totalCost+"\n");
-
-		// set known value of e
-		for (Edge e : pGraph.getEdgeList())
-		{	
-			if (e.getEquation() != "")
-				gp.getVariables().put(e.getLabel(), e.getEquation());
-		}
-		
-		/*String[] tokens = totalCost.split("e");
-		int n=tokens.length;
-		int cValues[] = new int[n];
-		for (int i=0;i< n;i++)
-		{
-			int c =0; 
-			for(int j=0;j<tokens[i].length();j++)
-			{
-				String token = tokens[i];
-				if(token.charAt(j)=='C')
-					c++;
-			}
-			cValues[i] = c;
-		}
-		int i =0;
-		totalCost ="";
-		for (Edge e : pGraph.getEdgeList())
-		{	
-			if(e.getVisible())
-			{
-			    if(totalCost == "")
-			    {
-			    	if(e.getEquation() == "")
-			    		totalCost = totalCost+"("+cValues[i]+")*"+e.getLabel();
-			    	else
-			    		totalCost = totalCost+"("+cValues[i]+")*"+"("+e.getEquation()+")";
-			    }
-			    else
-			    {
-			    	if(e.getEquation() == "")
-			    		totalCost = totalCost+"+("+cValues[i]+")*"+e.getLabel();
-			    	else
-			    		totalCost = totalCost+"+("+cValues[i]+")*"+"("+e.getEquation()+")";
-			    }
-			    i++;
-			}
-		}	
-		appendLineToFrame("C="+totalCost);*/
-
-		//Print final cost equation
-		try {
-			appendLineToFrame("\nC=" + gp.Simplify(gp.EvalExprAsString(totalCost)));
-		} catch (Exception e1) {
-			System.out.println("Cost equation parsing: " + e1.getMessage());
-		}
 		
 		// From here it is difficult to reconcile the difference between GraphParser and GraphML parser without some major rewriting
 		// I'll keep them separate
@@ -603,6 +537,52 @@ public class ProgramExecutor {
 					}
 				}
 			}
+		}
+
+		// If an edge is a loop and source vertex is decision/branch, add 2 to the time cost to account for increment/decrement and condition test
+		// Note that this assumes that for/while loop always increment/decrement, which they don't have to.
+		LinkedList<String> lstTemp = new LinkedList<String>();
+		for (Edge e : pGraph.getEdgeList())
+		{
+			if (!lstTemp.contains(e.getSource().getLabel()) && e.getLoopType() != null && e.getSource().getType() != null)
+			{
+				if (e.getSource().getType().toUpperCase().equals("DECISION"))
+				{
+					lstTemp.add(e.getSource().getLabel());
+					e.setTimecost(e.getTimecost() + "+2");
+				}
+			}
+		}
+		
+		String totalCost = "";
+		String subCost = "";
+		//Print Edge Time cost
+		for (Edge e : pGraph.getEdgeList())
+		{
+			if(e.getVisible())
+			{
+				if(subCost == "")
+					subCost = "(" + e.getTimecost()+")*"+e.getLabel();
+				else
+					subCost = "+(" + e.getTimecost()+")*"+e.getLabel();
+				appendLineToFrame("C"+e.getLabel() + " = (" + e.getTimecost()+")*"+e.getLabel());
+			    totalCost = totalCost+subCost;
+			}
+		}
+		appendLineToFrame("\nC="+totalCost+"\n");
+
+		// set known value of e
+		for (Edge e : pGraph.getEdgeList())
+		{	
+			if (e.getEquation() != "")
+				gp.getVariables().put(e.getLabel(), e.getEquation());
+		}
+
+		//Print final cost equation
+		try {
+			appendLineToFrame("\nC=" + gp.Simplify(gp.EvalExprAsString(totalCost)));
+		} catch (Exception e1) {
+			System.out.println("Cost equation parsing: " + e1.getMessage());
 		}
 	}
 	
