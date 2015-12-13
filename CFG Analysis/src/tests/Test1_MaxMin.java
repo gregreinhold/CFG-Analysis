@@ -9,7 +9,7 @@ public class Test1_MaxMin {
         int i = 0;
 		for (i = 0; i < A.length; i++)
 		{
-			if (A[i] > max) 
+			if (A[i] > max)
 				max = A[i];
 			if (A[i] < min) 
 				min = A[i];

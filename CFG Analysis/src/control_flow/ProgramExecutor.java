@@ -79,13 +79,15 @@ public class ProgramExecutor {
 			String line=null;
 			int lineNumber=1;
 			while((line=br.readLine()) !=null){
-				if(line.contains("for"))
+				String trimmedLine = line.trim();
+				trimmedLine = trimmedLine.replaceAll("\\t+", "");
+				if(trimmedLine.startsWith("for"))
 					lineloop.put(lineNumber+"", "for");
-				if(line.contains("while"))
+				if(trimmedLine.startsWith("while"))
 					lineloop.put(lineNumber+"", "while");
-				if(line.contains("if"))
+				if(trimmedLine.startsWith("if"))
 					lineif.put(lineNumber+"", "if");
-				aLines.add(line);
+				aLines.add(trimmedLine);
 				lineNumber++;
 			}
 			br.close();
@@ -210,6 +212,10 @@ public class ProgramExecutor {
 					g.addEdge(newEdge);
 					g.deleteVertex(v);
 				}
+			}
+			else if(v.getOutEdgeList().size() == 1 && v.getType().equals("instruction")){
+				// this is only reached in the case where an instruction immediately follows a completed if statement
+				v.getOutEdgeList().get(0).setTimecost("C" + v.getLabel());
 			}
 		}
 
@@ -378,7 +384,7 @@ public class ProgramExecutor {
 			if (!e.getIndependent())
 				appendLineToFrame(e.getLabel() + " = " + e.getEquation());
 		}
-		appendLineToFrame("");
+//		appendLineToFrame("");
 		
 		// From here it is difficult to reconcile the difference between GraphParser and GraphML parser without some major rewriting
 		// I'll keep them separate
@@ -505,28 +511,40 @@ public class ProgramExecutor {
 			}
 		}
 
+		appendLineToFrame("");
+		
 		// If an edge is a loop and source vertex is decision/branch, add 2 to the time cost to account for increment/decrement and condition test
 		// Note that this assumes that for/while loop always increment/decrement, which they don't have to.
 		// The getExpr returns the line of code for the vertex.
 		for (Vertex v : pGraph.getVerticesList())
 		{
 			if ((v.getType() != null && (v.getType().toUpperCase().equals(Keyword.FOR.toString()) || v.getType().toUpperCase().equals(Keyword.WHILE.toString()))) || 
-				(v.getExpr() != null && (v.getExpr().contains("for") || v.getExpr().contains("while") || v.getExpr().contains("if"))))
+				(v.getExpr() != null && (v.getExpr().startsWith("for") || v.getExpr().startsWith("while") || v.getExpr().startsWith("if"))))
 			{
 				for (Edge e : v.getOutEdgeList())
 				{
 					// there should really be EXACTLY 1 edge going into the loop block from the loop branch vertex
 					// and EXACTLY 1 edge going out of the loop branch vertex
-					// This code effectively tries to add a cost 2 vertex into the loop block
+					// This code effectively tries to add a cost 2 vertex into the for loop block and 1 into while loop block
 					// the CFG factory sometimes reduces the graph too much so I don't know there is any guarantee the above will always happen
 					// *** with this implementation of storing whether an edge is in a loop, it is difficult to do anything
 					if (e.getLoopType() != null && (v.getExpr() != null && (v.getExpr().contains("for") || v.getExpr().contains("while"))))
 					{	// this edge goes into the loop block, this gets multiplied by e
-						e.setTimecost(trim('+', e.getTimecost() + "+2"));
+						if(v.getExpr().contains("for")){
+							e.setTimecost(trim('+', e.getTimecost() + "+2"));
+						}
+						else if(v.getExpr().contains("while")){
+							e.setTimecost(trim('+', e.getTimecost() + "+1"));
+						}
 					}
 					else
 					{	// this edge exits the loop and IS NOT part of the loop, so the +1 should not get multiplied by e of the for loop
-						e.setTimecost(trim('+', e.getTimecost() + "+1"));
+						if(e.getTimecost().equals("0")){
+							e.setTimecost("1");
+						}
+						else{
+							e.setTimecost(trim('+', e.getTimecost() + "+1"));
+						}
 					}
 				}
 			}
@@ -558,7 +576,8 @@ public class ProgramExecutor {
 
 		//Print final cost equation
 		try {
-			appendLineToFrame("\nC=" + gp.Simplify(gp.EvalExprAsString(totalCost)));
+			appendLineToFrame("Final Cost Equation:");
+			appendLineToFrame("C=" + gp.Simplify(gp.EvalExprAsString(totalCost)));
 		} catch (Exception e1) {
 			System.out.println("Cost equation parsing: " + e1.getMessage());
 		}
